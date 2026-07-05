@@ -483,15 +483,7 @@ export default function StatsScreen() {
             <Text style={[styles.bentoValue, { color: '#0a643b', fontSize: 16, marginTop: 4 }]}>View Summary</Text>
           </TouchableOpacity>
 
-          <View style={[styles.bentoCard, { backgroundColor: '#fff', overflow: 'hidden', borderWidth: 1, borderColor: Theme.colors.outlineVariant }]}>
-            <View style={{ position: 'absolute', bottom: -8, right: -8, opacity: 0.1 }}>
-              <Banknote size={56} color="#2563eb" />
-            </View>
-            <Text style={styles.bentoLabel}>Cash On Hand</Text>
-            <Text style={[styles.bentoValue, { color: '#2563eb', fontSize: 22 }]} numberOfLines={1}>
-              ₱{(paymentStats.cash + todaysUtangCollected - todaysExpenses).toLocaleString()}
-            </Text>
-          </View>
+
         </View>
 
         {/* Cash Sales & Net Profit */}
