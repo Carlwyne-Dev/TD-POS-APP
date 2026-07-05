@@ -938,6 +938,7 @@ export async function seedDemoItems(): Promise<void> {
         description: 'Store Electricity bill',
         amount: 350,
         category: 'Utility',
+        paymentType: 'cash',
         timestamp: new Date(today.getTime() - 4 * 24 * 3600000).toISOString(),
       },
       {
@@ -945,6 +946,7 @@ export async function seedDemoItems(): Promise<void> {
         description: 'Tricycle Fare for grocery supplies',
         amount: 50,
         category: 'Transport',
+        paymentType: 'cash',
         timestamp: new Date(today.getTime() - 2 * 24 * 3600000).toISOString(),
       }
     ];
