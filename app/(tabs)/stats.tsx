@@ -50,7 +50,8 @@ import {
   BarChart2,
   Settings,
   ChevronDown,
-  RefreshCw
+  RefreshCw,
+  ShoppingBag
 } from 'lucide-react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -63,7 +64,7 @@ import {
   DEFAULT_CATEGORIES
 } from '../../lib/storage';
 import { useSettings } from '../../context/SettingsContext';
-import { calculateTodaysSales, calculateTodaysProfit, getPaymentBreakdown } from '../../lib/calculations';
+import { calculateTodaysSales, calculateTodaysProfit, getPaymentBreakdown, calculateItemsSold, getTopSoldProducts } from '../../lib/calculations';
 import { Transaction, Product, UtangRecord, Expense } from '../../lib/types';
 import { Theme } from '../../constants/Theme';
 
@@ -92,6 +93,8 @@ export default function StatsScreen() {
   const [todaysSales, setTodaysSales] = useState(0);
   const [todaysProfit, setTodaysProfit] = useState(0);
   const [paymentStats, setPaymentStats] = useState({ cash: 0, gcash: 0 });
+  const [itemsSold, setItemsSold] = useState(0);
+  const [topSellingItems, setTopSellingItems] = useState<{id: string, name: string, count: number}[]>([]);
   const [lowStockItems, setLowStockItems] = useState<Product[]>([]);
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   
@@ -245,6 +248,8 @@ export default function StatsScreen() {
     setTodaysSales(calculateTodaysSales(activeData));
     setTodaysProfit(calculateTodaysProfit(activeData, allProducts));
     setPaymentStats(getPaymentBreakdown(activeData));
+    setItemsSold(calculateItemsSold(activeData));
+    setTopSellingItems(getTopSoldProducts(activeData, 3));
 
     // Combine real sales with utang records for the history list only
     const today = new Date().toISOString().split('T')[0];
@@ -371,21 +376,28 @@ export default function StatsScreen() {
         </Animated.View>
 
         {/* Quick Summaries Bento */}
-        <View style={styles.actionGrid}>
-          <TouchableOpacity style={styles.actionCard} onPress={() => setShowCloseout(true)}>
+        <View style={[styles.actionGrid, { flexWrap: 'wrap' }]}>
+          <View style={[styles.actionCard, { width: '47%' }]}>
+            <View style={[styles.actionIcon, { backgroundColor: '#fdf4ff' }]}>
+              <ShoppingBag size={20} color="#a21caf" />
+            </View>
+            <Text style={styles.actionLabel}>{itemsSold}</Text>
+            <Text style={styles.actionSubLabel}>Items Sold</Text>
+          </View>
+          <TouchableOpacity style={[styles.actionCard, { width: '47%' }]} onPress={() => setShowCloseout(true)}>
             <View style={[styles.actionIcon, { backgroundColor: '#defbe6' }]}>
               <FileText size={20} color="#0a643b" />
             </View>
             <Text style={styles.actionLabel}>Daily Report</Text>
           </TouchableOpacity>
-          <View style={styles.actionCard}>
+          <View style={[styles.actionCard, { width: '47%' }]}>
             <View style={[styles.actionIcon, { backgroundColor: '#fef3c7' }]}>
               <Package size={20} color="#92400e" />
             </View>
             <Text style={styles.actionLabel}>₱{totalInventoryValue.toLocaleString()}</Text>
             <Text style={styles.actionSubLabel}>Inv. Value</Text>
           </View>
-          <View style={styles.actionCard}>
+          <View style={[styles.actionCard, { width: '47%' }]}>
             <View style={[styles.actionIcon, { backgroundColor: '#fee2e2' }]}>
               <Wallet size={20} color="#b91c1c" />
             </View>
@@ -393,6 +405,27 @@ export default function StatsScreen() {
             <Text style={styles.actionSubLabel}>Total Debt</Text>
           </View>
         </View>
+
+        {topSellingItems.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <TrendingUp size={20} color={Theme.colors.primary} />
+                <Text style={styles.sectionTitle}>Top Sellers</Text>
+              </View>
+            </View>
+            <View style={styles.alertsGrid}>
+              {topSellingItems.map(item => (
+                <View key={item.id} style={styles.alertCard}>
+                  <View style={styles.alertInfo}>
+                    <Text style={styles.alertName} numberOfLines={1}>{item.name}</Text>
+                    <Text style={[styles.alertStatus, { color: Theme.colors.primary }]}>{item.count} items sold</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         <View style={styles.bentoGrid}>
           <Animated.View style={[styles.bentoCard, cashCardStyle]}>
@@ -566,6 +599,14 @@ export default function StatsScreen() {
                   <Text style={styles.summaryItemLabel}>Sales Count</Text>
                 </View>
                 <Text style={styles.summaryItemValue}>{recentTransactions.length} sales</Text>
+              </View>
+              
+              <View style={styles.summaryRow}>
+                <View style={styles.summaryRowLabelGroup}>
+                  <ShoppingBag size={18} color={Theme.colors.onSurfaceVariant} />
+                  <Text style={styles.summaryItemLabel}>Items Sold</Text>
+                </View>
+                <Text style={styles.summaryItemValue}>{itemsSold} items</Text>
               </View>
               
               <View style={styles.divider} />

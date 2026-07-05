@@ -4,6 +4,12 @@ export const calculateTodaysSales = (transactions: Transaction[]) => {
   return transactions.reduce((sum, t) => sum + t.total, 0);
 };
 
+export const calculateItemsSold = (transactions: Transaction[]) => {
+  return transactions.reduce((total, t) => {
+    return total + t.items.reduce((sum, item) => sum + item.qty, 0);
+  }, 0);
+};
+
 export const calculateTodaysProfit = (transactions: Transaction[], products: Product[]) => {
   let profit = 0;
   transactions.forEach(t => {
