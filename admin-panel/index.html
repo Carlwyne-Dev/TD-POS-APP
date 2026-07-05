@@ -322,9 +322,28 @@
     .loading-row td { text-align: center; color: var(--text-muted); font-style: italic; }
 
     /* Charts */
-    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
-    .chart-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 24px 20px;
+      box-shadow: var(--shadow);
+    }
+    .chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .chart-meta { }
+    .chart-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .chart-big-num { font-size: 32px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+    .chart-big-num span { font-size: 14px; font-weight: 500; color: var(--text-muted); margin-left: 4px; }
+    .chart-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .chart-badge.up { background: var(--success-bg); color: var(--success); }
+    .chart-badge.neutral { background: var(--warning-bg); color: var(--warning); }
+    .chart-badge.down { background: var(--danger-bg); color: var(--danger); }
+    .chart-full { grid-column: 1 / -1; }
+    .donut-center { position: relative; }
+    .donut-legend { display: flex; gap: 20px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+    .donut-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    .donut-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     @media (max-width: 800px) { .charts-grid { grid-template-columns: 1fr; } }
 
     @media (max-width: 600px) {
@@ -444,24 +463,68 @@
     </div>
     <!-- CHARTS TAB -->
     <div id="tab-charts" style="display:none">
-      <div class="charts-grid">
-        <div class="chart-card">
-          <div class="chart-title">Activations Over Time (Last 6 Months)</div>
-          <canvas id="chart-activations" height="200"></canvas>
+
+      <!-- Summary strip -->
+      <div class="charts-grid" style="grid-template-columns: repeat(4,1fr); margin-bottom: 20px;">
+        <div class="chart-card" style="padding:20px">
+          <div class="chart-title">Total Keys</div>
+          <div class="chart-big-num" id="cv-total">—</div>
         </div>
-        <div class="chart-card">
-          <div class="chart-title">License Status Breakdown</div>
-          <canvas id="chart-status" height="200"></canvas>
+        <div class="chart-card" style="padding:20px">
+          <div class="chart-title">Activated</div>
+          <div class="chart-big-num" style="color:var(--success)" id="cv-activated">—</div>
+        </div>
+        <div class="chart-card" style="padding:20px">
+          <div class="chart-title">Active Trials</div>
+          <div class="chart-big-num" style="color:var(--warning)" id="cv-trials">—</div>
+        </div>
+        <div class="chart-card" style="padding:20px">
+          <div class="chart-title">Revoked</div>
+          <div class="chart-big-num" style="color:var(--danger)" id="cv-revoked">—</div>
         </div>
       </div>
+
+      <!-- Area charts row -->
       <div class="charts-grid">
         <div class="chart-card">
-          <div class="chart-title">Trial Registrations Over Time (Last 6 Months)</div>
-          <canvas id="chart-trials" height="200"></canvas>
+          <div class="chart-header">
+            <div class="chart-meta">
+              <div class="chart-title">License Activations</div>
+              <div class="chart-big-num" id="cv-act-total">—<span>activations</span></div>
+            </div>
+          </div>
+          <canvas id="chart-activations" height="160"></canvas>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Trial vs Licensed Users</div>
-          <canvas id="chart-user-split" height="200"></canvas>
+          <div class="chart-header">
+            <div class="chart-meta">
+              <div class="chart-title">Trial Signups</div>
+              <div class="chart-big-num" id="cv-trial-total">—<span>signups</span></div>
+            </div>
+          </div>
+          <canvas id="chart-trials" height="160"></canvas>
+        </div>
+      </div>
+
+      <!-- Donut row -->
+      <div class="charts-grid" style="margin-top:20px;">
+        <div class="chart-card">
+          <div class="chart-title" style="margin-bottom:16px">License Status</div>
+          <canvas id="chart-status" height="180"></canvas>
+          <div class="donut-legend">
+            <div class="donut-legend-item"><div class="donut-dot" style="background:#1a6b45"></div>Activated</div>
+            <div class="donut-legend-item"><div class="donut-dot" style="background:#e5e7eb"></div>Unused</div>
+            <div class="donut-legend-item"><div class="donut-dot" style="background:#dc2626"></div>Revoked</div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title" style="margin-bottom:16px">User Pipeline</div>
+          <canvas id="chart-user-split" height="180"></canvas>
+          <div class="donut-legend">
+            <div class="donut-legend-item"><div class="donut-dot" style="background:#d97706"></div>Active Trial</div>
+            <div class="donut-legend-item"><div class="donut-dot" style="background:#f87171"></div>Expired Trial</div>
+            <div class="donut-legend-item"><div class="donut-dot" style="background:#1a6b45"></div>Licensed</div>
+          </div>
         </div>
       </div>
     </div>
@@ -711,7 +774,7 @@
     }
     const monthLabels = months.map(m => {
       const d = new Date(m + '-01');
-      return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+      return d.toLocaleDateString('en-US', { month: 'short' });
     });
 
     const activationsByMonth = months.map(m =>
@@ -726,47 +789,108 @@
     const revoked = allKeys.filter(k => k.revoked).length;
     const trialActive = allTrials.filter(t => !t.isExpired).length;
     const trialExpired = allTrials.filter(t => t.isExpired).length;
+    const totalAct = activationsByMonth.reduce((a,b) => a+b, 0);
+    const totalTr  = trialsByMonth.reduce((a,b) => a+b, 0);
 
-    const green = '#1a6b45';
-    const greenLight = 'rgba(26,107,69,0.15)';
-    const blue = '#2563eb';
-    const blueLight = 'rgba(37,99,235,0.15)';
-    const red = '#dc2626';
-    const amber = '#d97706';
+    // Summary tiles
+    document.getElementById('cv-total').textContent = allKeys.length;
+    document.getElementById('cv-activated').textContent = activated;
+    document.getElementById('cv-trials').textContent = trialActive;
+    document.getElementById('cv-revoked').textContent = revoked;
+    document.getElementById('cv-act-total').innerHTML = `${totalAct}<span>activations</span>`;
+    document.getElementById('cv-trial-total').innerHTML = `${totalTr}<span>signups</span>`;
 
-    function makeChart(id, type, labels, datasets, opts = {}) {
-      if (chartInstances[id]) chartInstances[id].destroy();
-      chartInstances[id] = new Chart(document.getElementById(id), {
-        type,
-        data: { labels, datasets },
-        options: {
-          responsive: true,
-          plugins: { legend: { display: type === 'doughnut' } },
-          scales: type === 'bar' ? { y: { beginAtZero: true, ticks: { stepSize: 1 } } } : {},
-          ...opts
+    const font = { family: 'Plus Jakarta Sans', size: 12 };
+    const gridColor = 'rgba(0,0,0,0.05)';
+
+    function gradientFill(ctx, color) {
+      const g = ctx.createLinearGradient(0, 0, 0, 200);
+      g.addColorStop(0, color.replace('1)', '0.25)').replace('rgb', 'rgba'));
+      g.addColorStop(1, color.replace('1)', '0.01)').replace('rgb', 'rgba'));
+      return g;
+    }
+
+    const baseLineOpts = (color) => ({
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a2e24',
+          titleFont: { ...font, weight: '700' },
+          bodyFont: font,
+          padding: 12,
+          cornerRadius: 10,
+          callbacks: { label: ctx => `  ${ctx.parsed.y} entries` }
         }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font, color: '#8fa898' }, border: { display: false } },
+        y: {
+          beginAtZero: true,
+          grid: { color: gridColor, drawBorder: false },
+          ticks: { stepSize: 1, font, color: '#8fa898', padding: 8 },
+          border: { display: false }
+        }
+      },
+      elements: { point: { radius: 4, hoverRadius: 7, borderWidth: 2, backgroundColor: '#fff' } }
+    });
+
+    const donutOpts = {
+      responsive: true,
+      cutout: '72%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a2e24',
+          titleFont: { ...font, weight: '700' },
+          bodyFont: font,
+          padding: 12,
+          cornerRadius: 10
+        }
+      }
+    };
+
+    function makeAreaChart(id, labels, data, colorRgb) {
+      if (chartInstances[id]) chartInstances[id].destroy();
+      const canvas = document.getElementById(id);
+      const ctx = canvas.getContext('2d');
+      const fill = gradientFill(ctx, colorRgb);
+      chartInstances[id] = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            data,
+            borderColor: colorRgb,
+            borderWidth: 2.5,
+            fill: true,
+            backgroundColor: fill,
+            tension: 0.45,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: colorRgb,
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            pointBorderWidth: 2.5
+          }]
+        },
+        options: baseLineOpts(colorRgb)
       });
     }
 
-    makeChart('chart-activations', 'bar', monthLabels, [{
-      label: 'Activations', data: activationsByMonth,
-      backgroundColor: greenLight, borderColor: green, borderWidth: 2, borderRadius: 6
-    }]);
+    function makeDonut(id, labels, data, colors) {
+      if (chartInstances[id]) chartInstances[id].destroy();
+      chartInstances[id] = new Chart(document.getElementById(id), {
+        type: 'doughnut',
+        data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0, hoverOffset: 8 }] },
+        options: donutOpts
+      });
+    }
 
-    makeChart('chart-status', 'doughnut', ['Activated', 'Unused', 'Revoked'], [{
-      data: [activated, unused, revoked],
-      backgroundColor: [green, '#e5e7eb', red], borderWidth: 0
-    }]);
-
-    makeChart('chart-trials', 'bar', monthLabels, [{
-      label: 'Trial Signups', data: trialsByMonth,
-      backgroundColor: blueLight, borderColor: blue, borderWidth: 2, borderRadius: 6
-    }]);
-
-    makeChart('chart-user-split', 'doughnut', ['Active Trials', 'Expired Trials', 'Licensed'], [{
-      data: [trialActive, trialExpired, activated],
-      backgroundColor: [amber, red, green], borderWidth: 0
-    }]);
+    makeAreaChart('chart-activations', monthLabels, activationsByMonth, 'rgb(26,107,69)');
+    makeAreaChart('chart-trials', monthLabels, trialsByMonth, 'rgb(37,99,235)');
+    makeDonut('chart-status', ['Activated','Unused','Revoked'], [activated, unused, revoked], ['#1a6b45','#e5e7eb','#dc2626']);
+    makeDonut('chart-user-split', ['Active Trial','Expired','Licensed'], [trialActive, trialExpired, activated], ['#d97706','#f87171','#1a6b45']);
   }
 
   // ── Tabs ──────────────────────────────────────────────────────
