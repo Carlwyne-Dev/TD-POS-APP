@@ -646,75 +646,36 @@ export default function StatsScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 500 }}>
-              {/* Payment Methods Section */}
-              <View style={{ marginBottom: 20 }}>
-                <Text style={{ fontFamily: Theme.typography.bodyBold, color: Theme.colors.outline, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Payment Methods</Text>
-                
-                <View style={{ backgroundColor: Theme.colors.surfaceVariant, borderRadius: 16, overflow: 'hidden' }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: Theme.colors.outlineVariant }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                      <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#dcfce7', alignItems: 'center', justifyContent: 'center' }}>
-                        <Banknote size={16} color="#16a34a" />
-                      </View>
-                      <Text style={{ fontFamily: Theme.typography.bodyMedium, color: Theme.colors.onSurfaceVariant }}>Cash Sales</Text>
-                    </View>
-                    <Text style={{ fontFamily: Theme.typography.bodyBold, color: Theme.colors.onSurface, fontSize: 16 }}>₱{paymentStats.cash.toLocaleString()}</Text>
-                  </View>
-                  
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 16 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                      <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#dbeafe', alignItems: 'center', justifyContent: 'center' }}>
-                        <Smartphone size={16} color="#2563eb" />
-                      </View>
-                      <Text style={{ fontFamily: Theme.typography.bodyMedium, color: Theme.colors.onSurfaceVariant }}>GCash Sales</Text>
-                    </View>
-                    <Text style={{ fontFamily: Theme.typography.bodyBold, color: '#2563eb', fontSize: 16 }}>₱{paymentStats.gcash.toLocaleString()}</Text>
-                  </View>
-                </View>
+            <View style={{ backgroundColor: '#f9f9f9', borderRadius: 12, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#eee' }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <Text style={{ fontFamily: Theme.typography.bodyMedium, color: Theme.colors.onSurfaceVariant, fontSize: 15 }}>Cash</Text>
+                <Text style={{ fontFamily: Theme.typography.bodyBold, color: Theme.colors.onSurface, fontSize: 15 }}>₱{paymentStats.cash.toLocaleString()}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <Text style={{ fontFamily: Theme.typography.bodyMedium, color: Theme.colors.onSurfaceVariant, fontSize: 15 }}>GCash</Text>
+                <Text style={{ fontFamily: Theme.typography.bodyBold, color: '#2563eb', fontSize: 15 }}>₱{paymentStats.gcash.toLocaleString()}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#ddd' }}>
+                <Text style={{ fontFamily: Theme.typography.bodyMedium, color: Theme.colors.onSurfaceVariant, fontSize: 15 }}>Utang</Text>
+                <Text style={{ fontFamily: Theme.typography.bodyBold, color: '#e11d48', fontSize: 15 }}>₱{periodUtangStats.issued.toLocaleString()}</Text>
               </View>
 
-              {/* Transactions Section */}
-              <View style={{ marginBottom: 20 }}>
-                <Text style={{ fontFamily: Theme.typography.bodyBold, color: Theme.colors.outline, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Transactions</Text>
-                
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                  <View style={{ flex: 1, backgroundColor: '#f8fafc', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Theme.colors.outlineVariant }}>
-                    <Text style={{ fontFamily: Theme.typography.bodyMedium, color: Theme.colors.outline, fontSize: 13 }}>Total Count</Text>
-                    <Text style={{ fontFamily: Theme.typography.headlineBlack, color: Theme.colors.onSurface, fontSize: 24, marginTop: 4 }}>{transactionStats.count}</Text>
-                  </View>
-                  <View style={{ flex: 1, backgroundColor: '#f8fafc', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Theme.colors.outlineVariant }}>
-                    <Text style={{ fontFamily: Theme.typography.bodyMedium, color: Theme.colors.outline, fontSize: 13 }}>Average Sale</Text>
-                    <Text style={{ fontFamily: Theme.typography.headlineBlack, color: Theme.colors.primary, fontSize: 24, marginTop: 4 }}>₱{Math.round(transactionStats.avg).toLocaleString()}</Text>
-                  </View>
-                </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                <Text style={{ fontFamily: Theme.typography.bodyBold, color: Theme.colors.onSurface, fontSize: 16 }}>Total Sales</Text>
+                <Text style={{ fontFamily: Theme.typography.headlineBlack, color: '#0a643b', fontSize: 18 }}>₱{(paymentStats.cash + paymentStats.gcash).toLocaleString()}</Text>
               </View>
 
-              {/* Utang Section */}
-              <View style={{ marginBottom: 24 }}>
-                <Text style={{ fontFamily: Theme.typography.bodyBold, color: Theme.colors.outline, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Utang (Credit)</Text>
-                
-                <View style={{ backgroundColor: '#fff1f2', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#fecdd3', marginBottom: 8 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                      <AlertTriangle size={18} color="#e11d48" />
-                      <Text style={{ fontFamily: Theme.typography.bodyBold, color: '#e11d48' }}>Utang Issued</Text>
-                    </View>
-                    <Text style={{ fontFamily: Theme.typography.headlineBlack, color: '#e11d48', fontSize: 18 }}>₱{periodUtangStats.issued.toLocaleString()}</Text>
-                  </View>
+              <View style={{ backgroundColor: '#fff', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: '#eee' }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <Text style={{ fontFamily: Theme.typography.bodyMedium, color: Theme.colors.outline, fontSize: 13 }}>Transactions:</Text>
+                  <Text style={{ fontFamily: Theme.typography.bodyBold, color: Theme.colors.onSurface, fontSize: 13 }}>{transactionStats.count}</Text>
                 </View>
-
-                <View style={{ backgroundColor: '#f0fdf4', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#bbf7d0' }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                      <Banknote size={18} color="#16a34a" />
-                      <Text style={{ fontFamily: Theme.typography.bodyBold, color: '#16a34a' }}>Utang Collected</Text>
-                    </View>
-                    <Text style={{ fontFamily: Theme.typography.headlineBlack, color: '#16a34a', fontSize: 18 }}>₱{periodUtangStats.collected.toLocaleString()}</Text>
-                  </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ fontFamily: Theme.typography.bodyMedium, color: Theme.colors.outline, fontSize: 13 }}>Average Sale:</Text>
+                  <Text style={{ fontFamily: Theme.typography.bodyBold, color: Theme.colors.onSurface, fontSize: 13 }}>₱{transactionStats.avg.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
                 </View>
               </View>
-            </ScrollView>
+            </View>
 
             <TouchableOpacity 
               style={[styles.primaryButton, { width: '100%', marginBottom: 12 }]} 
