@@ -172,7 +172,10 @@ export default function StatsScreen() {
       (r.paymentType === 'cash' || r.paymentType === undefined || r.paymentType === null)
     ).reduce((s, r) => s + r.amount, 0);
     
-    const todayExpenses = expenses.filter(e => getLocalISOString(e.timestamp).startsWith(todayStr)).reduce((s, e) => s + e.amount, 0);
+    // Only subtract cash-paid expenses — gcash expenses don't come from the drawer
+    const todayExpenses = expenses
+      .filter(e => getLocalISOString(e.timestamp).startsWith(todayStr) && (e.paymentType === 'cash' || e.paymentType === undefined || e.paymentType === null))
+      .reduce((s, e) => s + e.amount, 0);
     setTodaysExpenses(todayExpenses);
 
     setTodaysUtangIssued(issuedToday);

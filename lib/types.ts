@@ -64,6 +64,7 @@ export type Expense = {
   description: string;
   amount: number;
   category: string;
+  paymentType: 'cash' | 'gcash';
   timestamp: string;
 };
 

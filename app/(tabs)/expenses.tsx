@@ -45,6 +45,7 @@ export default function ExpensesScreen() {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Others');
+  const [paymentType, setPaymentType] = useState<'cash' | 'gcash'>('cash');
   
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState<{
@@ -86,6 +87,7 @@ export default function ExpensesScreen() {
       description,
       amount: parseFloat(amount),
       category,
+      paymentType,
       timestamp: new Date().toISOString(),
     };
 
@@ -107,6 +109,7 @@ export default function ExpensesScreen() {
     setDescription('');
     setAmount('');
     setCategory('Others');
+    setPaymentType('cash');
   };
 
   const renderExpense = ({ item }: { item: Expense }) => (
@@ -225,6 +228,22 @@ export default function ExpensesScreen() {
                     <Text style={[styles.categoryChipText, category === cat && styles.activeCategoryChipText]}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
+              </View>
+
+              <Text style={styles.inputLabel}>PAID VIA</Text>
+              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+                <TouchableOpacity
+                  onPress={() => setPaymentType('cash')}
+                  style={[styles.categoryChip, paymentType === 'cash' && styles.activeCategoryChip, { flex: 1, alignItems: 'center', paddingVertical: 12 }]}
+                >
+                  <Text style={[styles.categoryChipText, paymentType === 'cash' && styles.activeCategoryChipText]}>💵 Cash</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setPaymentType('gcash')}
+                  style={[styles.categoryChip, paymentType === 'gcash' && styles.activeCategoryChip, { flex: 1, alignItems: 'center', paddingVertical: 12 }]}
+                >
+                  <Text style={[styles.categoryChipText, paymentType === 'gcash' && styles.activeCategoryChipText]}>📱 GCash</Text>
+                </TouchableOpacity>
               </View>
 
               <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
