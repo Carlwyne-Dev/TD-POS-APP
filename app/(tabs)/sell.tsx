@@ -49,7 +49,9 @@ import {
   Tag,
   ArrowRightLeft,
   ShoppingBag,
-  Settings
+  Settings,
+  Banknote,
+  Smartphone
 } from 'lucide-react-native';
 import Animated, { 
   SlideInDown, 
@@ -1074,18 +1076,20 @@ export default function SellScreen() {
 
             <ScrollView showsVerticalScrollIndicator={false}>
               {/* Payment Method Toggle */}
-              <View style={styles.paymentToggle}>
-                <TouchableOpacity 
-                  style={[styles.payOption, paymentType === 'cash' && styles.payOptionActive]}
+              <View style={{ flexDirection: 'row', backgroundColor: Theme.colors.surfaceVariant, borderRadius: 99, padding: 4, marginBottom: 24, marginTop: 16 }}>
+                <TouchableOpacity
                   onPress={() => handlePaymentTypeChange('cash')}
+                  style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 99, backgroundColor: paymentType === 'cash' ? '#fff' : 'transparent', elevation: paymentType === 'cash' ? 1 : 0, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2 }}
                 >
-                  <Text style={[styles.payOptionText, paymentType === 'cash' && styles.payOptionTextActive]}>Cash</Text>
+                  <Banknote size={16} color={paymentType === 'cash' ? Theme.colors.primary : Theme.colors.onSurfaceVariant} />
+                  <Text style={{ fontSize: 14, fontWeight: paymentType === 'cash' ? '700' : '500', color: paymentType === 'cash' ? Theme.colors.primary : Theme.colors.onSurfaceVariant }}>Cash</Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.payOption, paymentType === 'gcash' && styles.payOptionActive]}
+                <TouchableOpacity
                   onPress={() => handlePaymentTypeChange('gcash')}
+                  style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 99, backgroundColor: paymentType === 'gcash' ? '#fff' : 'transparent', elevation: paymentType === 'gcash' ? 1 : 0, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2 }}
                 >
-                  <Text style={[styles.payOptionText, paymentType === 'gcash' && styles.payOptionTextActive]}>GCash</Text>
+                  <Smartphone size={16} color={paymentType === 'gcash' ? Theme.colors.primary : Theme.colors.onSurfaceVariant} />
+                  <Text style={{ fontSize: 14, fontWeight: paymentType === 'gcash' ? '700' : '500', color: paymentType === 'gcash' ? Theme.colors.primary : Theme.colors.onSurfaceVariant }}>GCash</Text>
                 </TouchableOpacity>
               </View>
 
