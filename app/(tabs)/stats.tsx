@@ -165,7 +165,12 @@ export default function StatsScreen() {
 
     const todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
     const issuedToday = utang.filter(r => getLocalISOString(r.createdAt).startsWith(todayStr)).reduce((s, r) => s + r.amount, 0);
-    const collectedToday = utang.filter(r => r.isPaid && getLocalISOString(r.paidAt).startsWith(todayStr)).reduce((s, r) => s + r.amount, 0);
+    // Only count cash-paid utang — gcash repayments don't go into the drawer
+    const collectedToday = utang.filter(r => 
+      r.isPaid && 
+      getLocalISOString(r.paidAt).startsWith(todayStr) &&
+      (r.paymentType === 'cash' || r.paymentType === undefined || r.paymentType === null)
+    ).reduce((s, r) => s + r.amount, 0);
     
     const todayExpenses = expenses.filter(e => getLocalISOString(e.timestamp).startsWith(todayStr)).reduce((s, e) => s + e.amount, 0);
     setTodaysExpenses(todayExpenses);
@@ -419,12 +424,44 @@ export default function StatsScreen() {
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
             {topSellingItems.length > 0 ? (
-              topSellingItems.map(item => (
-                <View key={item.id} style={{ backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Theme.colors.outlineVariant, width: 140 }}>
-                  <Text style={{ fontWeight: '600', fontSize: 15 }} numberOfLines={1}>{item.name}</Text>
-                  <Text style={{ fontSize: 13, color: Theme.colors.primary, marginTop: 6 }}>{item.count} sold</Text>
-                </View>
-              ))
+              topSellingItems.map((item, index) => {
+                const isFirst = index === 0;
+                const isSecond = index === 1;
+                const isThird = index === 2;
+                
+                const badgeColor = isFirst ? '#fef08a' : isSecond ? '#e2e8f0' : isThird ? '#ffedd5' : '#f1f5f9';
+                const badgeTextColor = isFirst ? '#854d0e' : isSecond ? '#475569' : isThird ? '#9a3412' : '#64748b';
+
+                return (
+                  <View key={item.id} style={{ 
+                    backgroundColor: isFirst ? '#fffbeb' : '#fff', 
+                    borderRadius: 16, 
+                    padding: 16, 
+                    borderWidth: 1, 
+                    borderColor: isFirst ? '#fde047' : Theme.colors.outlineVariant, 
+                    width: 145,
+                    overflow: 'hidden',
+                    elevation: isFirst ? 2 : 0,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 4
+                  }}>
+                    {/* Watermark rank number */}
+                    <Text style={{ 
+                      position: 'absolute', bottom: -8, right: 4, 
+                      fontSize: 52, fontWeight: '900', 
+                      color: badgeTextColor, opacity: 0.1, lineHeight: 56
+                    }}>
+                      {index + 1}
+                    </Text>
+                    <Text style={{ fontWeight: '700', fontSize: 14, color: Theme.colors.onSurface, marginBottom: 4, lineHeight: 18 }} numberOfLines={2}>
+                      {item.name}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: Theme.colors.primary, fontWeight: '600' }}>{item.count} sold</Text>
+                  </View>
+                );
+              })
             ) : (
               <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Theme.colors.outlineVariant }}>
                  <Text style={{ color: Theme.colors.onSurfaceVariant }}>No items sold in this period.</Text>
@@ -433,7 +470,28 @@ export default function StatsScreen() {
           </ScrollView>
         </View>
 
-        {/* Restored Bento Grid: Cash Sales & Net Profit */}
+        {/* Daily Report and Cash On Hand */}
+        <View style={styles.bentoGrid}>
+          <TouchableOpacity style={[styles.bentoCard, { backgroundColor: '#fff', overflow: 'hidden', borderWidth: 1, borderColor: Theme.colors.outlineVariant }]} onPress={() => setShowCloseout(true)}>
+            <View style={{ position: 'absolute', bottom: -8, right: -8, opacity: 0.1 }}>
+              <FileText size={56} color="#0a643b" />
+            </View>
+            <Text style={styles.bentoLabel}>Daily Report</Text>
+            <Text style={[styles.bentoValue, { color: '#0a643b', fontSize: 16, marginTop: 4 }]}>View Summary</Text>
+          </TouchableOpacity>
+
+          <View style={[styles.bentoCard, { backgroundColor: '#fff', overflow: 'hidden', borderWidth: 1, borderColor: Theme.colors.outlineVariant }]}>
+            <View style={{ position: 'absolute', bottom: -8, right: -8, opacity: 0.1 }}>
+              <Banknote size={56} color="#2563eb" />
+            </View>
+            <Text style={styles.bentoLabel}>Cash On Hand</Text>
+            <Text style={[styles.bentoValue, { color: '#2563eb', fontSize: 22 }]} numberOfLines={1}>
+              ₱{(paymentStats.cash + todaysUtangCollected - todaysExpenses).toLocaleString()}
+            </Text>
+          </View>
+        </View>
+
+        {/* Cash Sales & Net Profit */}
         <View style={styles.bentoGrid}>
           <Animated.View style={[styles.bentoCard, cashCardStyle]}>
             <View style={styles.bentoHeader}>
@@ -455,27 +513,6 @@ export default function StatsScreen() {
             </View>
             <Text style={[styles.bentoValue, { color: (todaysProfit - todaysExpenses) >= 0 ? '#16a34a' : Theme.colors.tertiary }]}>
               ₱{(todaysProfit - todaysExpenses).toLocaleString()}
-            </Text>
-          </View>
-        </View>
-
-        {/* 3. Bottom Bento: Daily Report and Cash On Hand */}
-        <View style={styles.bentoGrid}>
-          <TouchableOpacity style={[styles.bentoCard, { backgroundColor: '#defbe6' }]} onPress={() => setShowCloseout(true)}>
-            <View style={styles.bentoHeader}>
-              <Text style={styles.bentoLabel}>Daily Report</Text>
-              <FileText size={16} color="#0a643b" />
-            </View>
-            <Text style={[styles.bentoValue, { color: '#0a643b', fontSize: 16, marginTop: 4 }]}>View Summary</Text>
-          </TouchableOpacity>
-
-          <View style={[styles.bentoCard, { backgroundColor: '#eff6ff' }]}>
-            <View style={styles.bentoHeader}>
-              <Text style={styles.bentoLabel}>Cash On Hand</Text>
-              <Banknote size={16} color="#2563eb" />
-            </View>
-            <Text style={[styles.bentoValue, { color: '#2563eb', fontSize: 22 }]} numberOfLines={1}>
-              ₱{(paymentStats.cash + todaysUtangCollected - todaysExpenses).toLocaleString()}
             </Text>
           </View>
         </View>
