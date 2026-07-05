@@ -71,6 +71,14 @@ import { Theme } from '../../constants/Theme';
 
 const { width } = Dimensions.get('window');
 
+const getLocalISOString = (dateString?: string) => {
+  if (!dateString) return '';
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return dateString;
+  const localD = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return localD.toISOString();
+};
+
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -155,11 +163,11 @@ export default function StatsScreen() {
     setAllProducts(products);
     setAllUtangRecords(utang);
 
-    const today = new Date().toISOString().split('T')[0];
-    const issuedToday = utang.filter(r => r.createdAt.startsWith(today)).reduce((s, r) => s + r.amount, 0);
-    const collectedToday = utang.filter(r => r.isPaid && r.paidAt?.startsWith(today)).reduce((s, r) => s + r.amount, 0);
+    const todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const issuedToday = utang.filter(r => getLocalISOString(r.createdAt).startsWith(todayStr)).reduce((s, r) => s + r.amount, 0);
+    const collectedToday = utang.filter(r => r.isPaid && getLocalISOString(r.paidAt).startsWith(todayStr)).reduce((s, r) => s + r.amount, 0);
     
-    const todayExpenses = expenses.filter(e => e.timestamp.startsWith(today)).reduce((s, e) => s + e.amount, 0);
+    const todayExpenses = expenses.filter(e => getLocalISOString(e.timestamp).startsWith(todayStr)).reduce((s, e) => s + e.amount, 0);
     setTodaysExpenses(todayExpenses);
 
     setTodaysUtangIssued(issuedToday);
@@ -181,11 +189,11 @@ export default function StatsScreen() {
 
     let filtered = allTransactions;
     if (period === 'daily') {
-      filtered = allTransactions.filter(t => t.timestamp.startsWith(todayStr));
+      filtered = allTransactions.filter(t => getLocalISOString(t.timestamp).startsWith(todayStr));
     } else if (period === 'monthly') {
-      filtered = allTransactions.filter(t => t.timestamp.startsWith(monthStr));
+      filtered = allTransactions.filter(t => getLocalISOString(t.timestamp).startsWith(monthStr));
     } else if (period === 'yearly') {
-      filtered = allTransactions.filter(t => t.timestamp.startsWith(yearStr));
+      filtered = allTransactions.filter(t => getLocalISOString(t.timestamp).startsWith(yearStr));
     }
 
     setPeriodTransactions(filtered);
@@ -199,7 +207,7 @@ export default function StatsScreen() {
         days.push(d.toISOString().split('T')[0]);
       }
       const values = days.map(dayStr => {
-        const dayTrans = allTransactions.filter(t => t.timestamp.startsWith(dayStr));
+        const dayTrans = allTransactions.filter(t => getLocalISOString(t.timestamp).startsWith(dayStr));
         const daySales = dayTrans.reduce((s, t) => s + t.total, 0);
         return { label: new Date(dayStr).toLocaleDateString('en-US', { weekday: 'short' }), value: daySales, transactions: dayTrans };
       });
@@ -208,7 +216,7 @@ export default function StatsScreen() {
     } else if (period === 'monthly') {
       const values = [1, 2, 3, 4].map(week => {
         const weekTrans = filtered.filter(t => {
-          const d = new Date(t.timestamp).getDate();
+          const d = new Date(getLocalISOString(t.timestamp)).getDate();
           if (week === 1) return d >= 1 && d <= 7;
           if (week === 2) return d >= 8 && d <= 14;
           if (week === 3) return d >= 15 && d <= 21;
@@ -230,7 +238,7 @@ export default function StatsScreen() {
         });
       }
       const values = months.map(m => {
-        const mTrans = allTransactions.filter(t => t.timestamp.startsWith(m.str));
+        const mTrans = allTransactions.filter(t => getLocalISOString(t.timestamp).startsWith(m.str));
         const mSales = mTrans.reduce((s, t) => s + t.total, 0);
         return { label: m.label, value: mSales, transactions: mTrans };
       });
@@ -253,9 +261,9 @@ export default function StatsScreen() {
     setTopSellingItems(getTopSoldProducts(activeData, 3));
 
     // Combine real sales with utang records for the history list only
-    const today = new Date().toISOString().split('T')[0];
+    const todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
     const todayNewDebt = allUtangRecords
-      .filter(r => r.createdAt.startsWith(today))
+      .filter(r => getLocalISOString(r.createdAt).startsWith(todayStr))
       .map(r => ({
         id: r.id,
         items: r.items || [],
@@ -423,6 +431,32 @@ export default function StatsScreen() {
               </View>
             )}
           </ScrollView>
+        </View>
+
+        {/* Restored Bento Grid: Cash Sales & Net Profit */}
+        <View style={styles.bentoGrid}>
+          <Animated.View style={[styles.bentoCard, cashCardStyle]}>
+            <View style={styles.bentoHeader}>
+              <Text style={[styles.bentoLabel]}>{showGcash ? 'GCash Sales' : 'Cash Sales'}</Text>
+              <TouchableOpacity
+                style={[styles.bentoToggle, showGcash && styles.bentoToggleActive]}
+                onPress={() => setShowGcash(!showGcash)}
+                activeOpacity={0.7}
+              >
+                <RefreshCw size={12} color={showGcash ? '#FFF' : Theme.colors.outline} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.bentoValue}>₱{(showGcash ? paymentStats.gcash : paymentStats.cash).toLocaleString()}</Text>
+          </Animated.View>
+          <View style={[styles.bentoCard, { backgroundColor: (todaysProfit - todaysExpenses) >= 0 ? '#f0fdf4' : '#fdf2f2' }]}>
+            <View style={styles.bentoHeader}>
+              <Text style={styles.bentoLabel}>Net Profit</Text>
+              <Info size={14} color={(todaysProfit - todaysExpenses) >= 0 ? '#16a34a' : Theme.colors.tertiary} />
+            </View>
+            <Text style={[styles.bentoValue, { color: (todaysProfit - todaysExpenses) >= 0 ? '#16a34a' : Theme.colors.tertiary }]}>
+              ₱{(todaysProfit - todaysExpenses).toLocaleString()}
+            </Text>
+          </View>
         </View>
 
         {/* 3. Bottom Bento: Daily Report and Cash On Hand */}
