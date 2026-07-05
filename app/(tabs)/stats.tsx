@@ -386,25 +386,25 @@ export default function StatsScreen() {
 
         {/* 1. Top Bento: Items Sold, Inv Value, Total Debt */}
         <View style={styles.bentoGrid}>
-          <View style={[styles.bentoCard, { padding: 16, backgroundColor: '#fdf4ff' }]}>
-            <View style={styles.bentoHeader}>
-              <Text style={[styles.bentoLabel, { fontSize: 12 }]} numberOfLines={1}>Items Sold</Text>
-              <ShoppingBag size={14} color="#a21caf" />
+          <View style={[styles.bentoCard, { padding: 16, backgroundColor: '#fff', overflow: 'hidden', borderWidth: 1, borderColor: Theme.colors.outlineVariant, flex: 1 }]}>
+            <View style={{ position: 'absolute', bottom: -12, right: -12, opacity: 0.15 }}>
+              <ShoppingBag size={56} color="#a21caf" />
             </View>
+            <Text style={[styles.bentoLabel, { fontSize: 11, color: Theme.colors.onSurfaceVariant, marginBottom: 6 }]} numberOfLines={1}>Items Sold</Text>
             <Text style={[styles.bentoValue, { color: '#a21caf', fontSize: 20 }]}>{itemsSold}</Text>
           </View>
-          <View style={[styles.bentoCard, { padding: 16, backgroundColor: '#fef3c7' }]}>
-            <View style={styles.bentoHeader}>
-              <Text style={[styles.bentoLabel, { fontSize: 12 }]} numberOfLines={1}>Inv. Value</Text>
-              <Package size={14} color="#92400e" />
+          <View style={[styles.bentoCard, { padding: 16, backgroundColor: '#fff', overflow: 'hidden', borderWidth: 1, borderColor: Theme.colors.outlineVariant, flex: 1 }]}>
+            <View style={{ position: 'absolute', bottom: -12, right: -12, opacity: 0.15 }}>
+              <Package size={56} color="#92400e" />
             </View>
+            <Text style={[styles.bentoLabel, { fontSize: 11, color: Theme.colors.onSurfaceVariant, marginBottom: 6 }]} numberOfLines={1}>Inv. Value</Text>
             <Text style={[styles.bentoValue, { color: '#92400e', fontSize: 20 }]} numberOfLines={1}>₱{totalInventoryValue.toLocaleString()}</Text>
           </View>
-          <View style={[styles.bentoCard, { padding: 16, backgroundColor: '#fee2e2' }]}>
-            <View style={styles.bentoHeader}>
-              <Text style={[styles.bentoLabel, { fontSize: 12 }]} numberOfLines={1}>Total Debt</Text>
-              <Wallet size={14} color="#b91c1c" />
+          <View style={[styles.bentoCard, { padding: 16, backgroundColor: '#fff', overflow: 'hidden', borderWidth: 1, borderColor: Theme.colors.outlineVariant, flex: 1 }]}>
+            <View style={{ position: 'absolute', bottom: -12, right: -12, opacity: 0.15 }}>
+              <Wallet size={56} color="#b91c1c" />
             </View>
+            <Text style={[styles.bentoLabel, { fontSize: 11, color: Theme.colors.onSurfaceVariant, marginBottom: 6 }]} numberOfLines={1}>Total Debt</Text>
             <Text style={[styles.bentoValue, { color: '#b91c1c', fontSize: 20 }]} numberOfLines={1}>₱{totalDebt.toLocaleString()}</Text>
           </View>
         </View>
