@@ -1264,14 +1264,16 @@ export default function SellScreen() {
                   </View>
 
                   {/* Pack/Piece Toggle */}
-                  <TouchableOpacity 
-                    style={[styles.miniUnitToggle, item.isPack && styles.miniUnitTogglePack]}
-                    onPress={() => toggleItemPack(item.productId)}
-                  >
-                    <Text style={[styles.miniUnitToggleText, item.isPack && styles.miniUnitToggleTextActive]}>
-                      {item.isPack ? 'PACK' : 'PC'}
-                    </Text>
-                  </TouchableOpacity>
+                  {businessSettings.enableBulkMode && (
+                    <TouchableOpacity 
+                      style={[styles.miniUnitToggle, item.isPack && styles.miniUnitTogglePack]}
+                      onPress={() => toggleItemPack(item.productId)}
+                    >
+                      <Text style={[styles.miniUnitToggleText, item.isPack && styles.miniUnitToggleTextActive]}>
+                        {item.isPack ? 'PACK' : 'PC'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
 
                   <View style={styles.miniControls}>
                     <TouchableOpacity onPress={() => updateQty(item.productId, -1)}>
