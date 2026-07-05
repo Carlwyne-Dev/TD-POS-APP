@@ -137,6 +137,7 @@ export default function StatsScreen() {
   };
 
   const [showCloseout, setShowCloseout] = useState(false);
+  const [showCashOnHandBreakdown, setShowCashOnHandBreakdown] = useState(false);
   const [showGcash, setShowGcash] = useState(false);
   const [showScrollHint, setShowScrollHint] = useState(true);
 
@@ -483,15 +484,21 @@ export default function StatsScreen() {
             <Text style={[styles.bentoValue, { color: '#0a643b', fontSize: 16, marginTop: 4 }]}>View Summary</Text>
           </TouchableOpacity>
 
-          <View style={[styles.bentoCard, { backgroundColor: '#fff', overflow: 'hidden', borderWidth: 1, borderColor: Theme.colors.outlineVariant }]}>
+          <TouchableOpacity 
+            style={[styles.bentoCard, { backgroundColor: '#fff', overflow: 'hidden', borderWidth: 1, borderColor: Theme.colors.outlineVariant }]}
+            onPress={() => setShowCashOnHandBreakdown(true)}
+          >
             <View style={{ position: 'absolute', bottom: -8, right: -8, opacity: 0.1 }}>
               <Banknote size={56} color="#2563eb" />
             </View>
-            <Text style={styles.bentoLabel}>Cash On Hand</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Text style={styles.bentoLabel}>Cash On Hand</Text>
+              <Info size={12} color={Theme.colors.onSurfaceVariant} />
+            </View>
             <Text style={[styles.bentoValue, { color: '#2563eb', fontSize: 22 }]} numberOfLines={1}>
               ₱{(paymentStats.cash + todaysUtangCollected - todaysExpenses).toLocaleString()}
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Cash Sales & Net Profit */}
@@ -621,6 +628,46 @@ export default function StatsScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <Modal visible={showCashOnHandBreakdown} transparent animationType="fade" onRequestClose={() => setShowCashOnHandBreakdown(false)}>
+        <View style={styles.sheetOverlay}>
+          <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
+          <View style={styles.checkoutModalContent}>
+            <View style={styles.dialogHeader}>
+              <Text style={styles.dialogTitle}>Net Cash Drawer</Text>
+              <TouchableOpacity onPress={() => setShowCashOnHandBreakdown(false)}>
+                <X size={24} color={Theme.colors.outline} />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={{ marginBottom: 24, padding: 16, backgroundColor: Theme.colors.surfaceVariant, borderRadius: 16 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <Text style={{ color: Theme.colors.onSurfaceVariant }}>Cash Sales</Text>
+                <Text style={{ fontWeight: '600', color: Theme.colors.onSurface }}>₱{paymentStats.cash.toLocaleString()}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <Text style={{ color: Theme.colors.onSurfaceVariant }}>+ Utang Paid (Cash)</Text>
+                <Text style={{ fontWeight: '600', color: '#16a34a' }}>₱{todaysUtangCollected.toLocaleString()}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: Theme.colors.outlineVariant }}>
+                <Text style={{ color: Theme.colors.onSurfaceVariant }}>- Expenses (Cash)</Text>
+                <Text style={{ fontWeight: '600', color: '#dc2626' }}>₱{todaysExpenses.toLocaleString()}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ fontWeight: 'bold', color: Theme.colors.onSurface }}>Expected Cash</Text>
+                <Text style={{ fontWeight: '900', color: '#2563eb', fontSize: 18 }}>₱{(paymentStats.cash + todaysUtangCollected - todaysExpenses).toLocaleString()}</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity 
+              style={[styles.primaryButton, { width: '100%', marginBottom: 12 }]} 
+              onPress={() => setShowCashOnHandBreakdown(false)}
+            >
+              <Text style={styles.primaryButtonText}>Got it</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Daily Closeout Modal */}
       <Modal visible={showCloseout} transparent animationType="fade" onShow={() => setShowScrollHint(true)} onRequestClose={() => setShowCloseout(false)}>
