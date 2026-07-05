@@ -102,6 +102,8 @@ export default function StatsScreen() {
   const [todaysSales, setTodaysSales] = useState(0);
   const [todaysProfit, setTodaysProfit] = useState(0);
   const [paymentStats, setPaymentStats] = useState({ cash: 0, gcash: 0 });
+  const [transactionStats, setTransactionStats] = useState({ count: 0, avg: 0 });
+  const [periodUtangStats, setPeriodUtangStats] = useState({ issued: 0, collected: 0 });
   const [itemsSold, setItemsSold] = useState(0);
   const [topSellingItems, setTopSellingItems] = useState<{id: string, name: string, count: number}[]>([]);
   const [lowStockItems, setLowStockItems] = useState<Product[]>([]);
@@ -265,11 +267,31 @@ export default function StatsScreen() {
     setTodaysSales(calculateTodaysSales(activeData));
     setTodaysProfit(calculateTodaysProfit(activeData, allProducts));
     setPaymentStats(getPaymentBreakdown(activeData));
+    const totalS = calculateTodaysSales(activeData);
+    setTransactionStats({ count: activeData.length, avg: activeData.length > 0 ? totalS / activeData.length : 0 });
     setItemsSold(calculateItemsSold(activeData));
     setTopSellingItems(getTopSoldProducts(activeData, 3));
 
+    const now = new Date();
+    const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    const todayStr = localNow.toISOString().split('T')[0];
+    const monthStr = localNow.toISOString().slice(0, 7);
+    const yearStr = localNow.getFullYear().toString();
+
+    let activeUtang = allUtangRecords;
+    if (period === 'daily') {
+      activeUtang = allUtangRecords.filter(r => getLocalISOString(r.createdAt).startsWith(todayStr));
+    } else if (period === 'monthly') {
+      activeUtang = allUtangRecords.filter(r => getLocalISOString(r.createdAt).startsWith(monthStr));
+    } else if (period === 'yearly') {
+      activeUtang = allUtangRecords.filter(r => getLocalISOString(r.createdAt).startsWith(yearStr));
+    }
+    setPeriodUtangStats({
+      issued: activeUtang.reduce((s, r) => s + r.amount, 0),
+      collected: activeUtang.filter(r => r.isPaid).reduce((s, r) => s + r.amount, 0)
+    });
+
     // Combine real sales with utang records for the history list only
-    const todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
     const todayNewDebt = allUtangRecords
       .filter(r => getLocalISOString(r.createdAt).startsWith(todayStr))
       .map(r => ({
@@ -619,25 +641,80 @@ export default function StatsScreen() {
           <View style={styles.checkoutModalContent}>
             <View style={styles.dialogHeader}>
               <Text style={styles.dialogTitle}>Total Sales Breakdown</Text>
-              <TouchableOpacity onPress={() => setShowSalesBreakdown(false)}>
-                <X size={24} color={Theme.colors.outline} />
+              <TouchableOpacity onPress={() => setShowSalesBreakdown(false)} style={{ padding: 4, backgroundColor: Theme.colors.surfaceVariant, borderRadius: 12 }}>
+                <X size={20} color={Theme.colors.onSurfaceVariant} />
               </TouchableOpacity>
             </View>
-            
-            <View style={{ marginBottom: 24, padding: 16, backgroundColor: Theme.colors.surfaceVariant, borderRadius: 16 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-                <Text style={{ color: Theme.colors.onSurfaceVariant }}>Cash Sales</Text>
-                <Text style={{ fontWeight: '600', color: Theme.colors.onSurface }}>₱{paymentStats.cash.toLocaleString()}</Text>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 500 }}>
+              {/* Payment Methods Section */}
+              <View style={{ marginBottom: 20 }}>
+                <Text style={{ fontFamily: Theme.typography.bodyBold, color: Theme.colors.outline, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Payment Methods</Text>
+                
+                <View style={{ backgroundColor: Theme.colors.surfaceVariant, borderRadius: 16, overflow: 'hidden' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: Theme.colors.outlineVariant }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                      <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#dcfce7', alignItems: 'center', justifyContent: 'center' }}>
+                        <Banknote size={16} color="#16a34a" />
+                      </View>
+                      <Text style={{ fontFamily: Theme.typography.bodyMedium, color: Theme.colors.onSurfaceVariant }}>Cash Sales</Text>
+                    </View>
+                    <Text style={{ fontFamily: Theme.typography.bodyBold, color: Theme.colors.onSurface, fontSize: 16 }}>₱{paymentStats.cash.toLocaleString()}</Text>
+                  </View>
+                  
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 16 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                      <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#dbeafe', alignItems: 'center', justifyContent: 'center' }}>
+                        <Smartphone size={16} color="#2563eb" />
+                      </View>
+                      <Text style={{ fontFamily: Theme.typography.bodyMedium, color: Theme.colors.onSurfaceVariant }}>GCash Sales</Text>
+                    </View>
+                    <Text style={{ fontFamily: Theme.typography.bodyBold, color: '#2563eb', fontSize: 16 }}>₱{paymentStats.gcash.toLocaleString()}</Text>
+                  </View>
+                </View>
               </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: Theme.colors.outlineVariant }}>
-                <Text style={{ color: Theme.colors.onSurfaceVariant }}>GCash Sales</Text>
-                <Text style={{ fontWeight: '600', color: '#2563eb' }}>₱{paymentStats.gcash.toLocaleString()}</Text>
+
+              {/* Transactions Section */}
+              <View style={{ marginBottom: 20 }}>
+                <Text style={{ fontFamily: Theme.typography.bodyBold, color: Theme.colors.outline, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Transactions</Text>
+                
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <View style={{ flex: 1, backgroundColor: '#f8fafc', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Theme.colors.outlineVariant }}>
+                    <Text style={{ fontFamily: Theme.typography.bodyMedium, color: Theme.colors.outline, fontSize: 13 }}>Total Count</Text>
+                    <Text style={{ fontFamily: Theme.typography.headlineBlack, color: Theme.colors.onSurface, fontSize: 24, marginTop: 4 }}>{transactionStats.count}</Text>
+                  </View>
+                  <View style={{ flex: 1, backgroundColor: '#f8fafc', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Theme.colors.outlineVariant }}>
+                    <Text style={{ fontFamily: Theme.typography.bodyMedium, color: Theme.colors.outline, fontSize: 13 }}>Average Sale</Text>
+                    <Text style={{ fontFamily: Theme.typography.headlineBlack, color: Theme.colors.primary, fontSize: 24, marginTop: 4 }}>₱{Math.round(transactionStats.avg).toLocaleString()}</Text>
+                  </View>
+                </View>
               </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={{ fontWeight: 'bold', color: Theme.colors.onSurface }}>Total Sales</Text>
-                <Text style={{ fontWeight: '900', color: '#0a643b', fontSize: 18 }}>₱{(paymentStats.cash + paymentStats.gcash).toLocaleString()}</Text>
+
+              {/* Utang Section */}
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{ fontFamily: Theme.typography.bodyBold, color: Theme.colors.outline, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Utang (Credit)</Text>
+                
+                <View style={{ backgroundColor: '#fff1f2', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#fecdd3', marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                      <AlertTriangle size={18} color="#e11d48" />
+                      <Text style={{ fontFamily: Theme.typography.bodyBold, color: '#e11d48' }}>Utang Issued</Text>
+                    </View>
+                    <Text style={{ fontFamily: Theme.typography.headlineBlack, color: '#e11d48', fontSize: 18 }}>₱{periodUtangStats.issued.toLocaleString()}</Text>
+                  </View>
+                </View>
+
+                <View style={{ backgroundColor: '#f0fdf4', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#bbf7d0' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                      <Banknote size={18} color="#16a34a" />
+                      <Text style={{ fontFamily: Theme.typography.bodyBold, color: '#16a34a' }}>Utang Collected</Text>
+                    </View>
+                    <Text style={{ fontFamily: Theme.typography.headlineBlack, color: '#16a34a', fontSize: 18 }}>₱{periodUtangStats.collected.toLocaleString()}</Text>
+                  </View>
+                </View>
               </View>
-            </View>
+            </ScrollView>
 
             <TouchableOpacity 
               style={[styles.primaryButton, { width: '100%', marginBottom: 12 }]} 
