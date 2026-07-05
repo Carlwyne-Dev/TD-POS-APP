@@ -524,7 +524,7 @@ export default function StatsScreen() {
 
       {/* Daily Closeout Modal */}
       <Modal visible={showCloseout} transparent animationType="fade" onShow={() => setShowScrollHint(true)} onRequestClose={() => setShowCloseout(false)}>
-        <View style={styles.modalOverlay}>
+        <View style={styles.alertOverlay}>
           <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
           <View style={styles.summaryCard}>
             <ScrollView
@@ -1037,6 +1037,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Theme.colors.onSurface,
     letterSpacing: -0.5,
+  },
+    alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalOverlay: {
     flex: 1,

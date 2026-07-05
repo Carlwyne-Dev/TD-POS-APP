@@ -948,7 +948,7 @@ export default function SellScreen() {
             <Text style={styles.pillLabel}>{cart.reduce((sum, item) => sum + item.qty, 0) === 1 ? 'Item' : 'Items'} Selected</Text>
           </View>
           <View style={styles.pillRight}>
-            <Text style={styles.pillTotal}>₱{total.toLocaleString()}</Text>
+            <Text style={styles.pillTotal} numberOfLines={1} adjustsFontSizeToFit>₱{total.toLocaleString()}</Text>
             <View style={styles.pillAction}>
               <ShoppingBag size={20} color="#FFF" />
             </View>
@@ -994,7 +994,7 @@ export default function SellScreen() {
 
       {/* Manual Qty Modal (Cross-platform) */}
       <Modal visible={qtyModalVisible} transparent animationType="fade" onRequestClose={() => setQtyModalVisible(false)}>
-        <View style={styles.modalOverlay}>
+        <View style={styles.alertOverlay}>
           <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
           <View style={styles.qtyModalContent}>
             <Text style={styles.qtyModalTitle}>Set Quantity</Text>
@@ -1153,7 +1153,7 @@ export default function SellScreen() {
 
       {/* Utang Customer Name Modal */}
       <Modal visible={utangModalVisible} transparent animationType="fade" onRequestClose={() => setUtangModalVisible(false)}>
-        <View style={styles.modalOverlay}>
+        <View style={styles.alertOverlay}>
           <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
           <View style={styles.utangPromptCard}>
             <Text style={styles.utangPromptTitle}>Customer Name</Text>
@@ -1320,7 +1320,7 @@ export default function SellScreen() {
 
       {/* Custom Alert Modal */}
       <Modal visible={alertVisible} transparent animationType="fade" onRequestClose={() => setAlertVisible(false)}>
-        <View style={styles.modalOverlay}>
+        <View style={styles.alertOverlay}>
           <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
           <Animated.View entering={ZoomIn} style={styles.alertCard}>
             {alertConfig.type === 'success' && <CheckCircle2 size={48} color={Theme.colors.primary} style={styles.alertIcon} />}
@@ -1532,11 +1532,13 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     paddingLeft: 20,
     paddingRight: 6,
+    flexShrink: 1,
   },
   pillTotal: {
     fontFamily: Theme.typography.headlineBlack,
     color: '#FFF',
     fontSize: 20,
+    flexShrink: 1,
   },
   pillAction: {
     backgroundColor: Theme.colors.primary,
@@ -1900,6 +1902,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     includeFontPadding: false,
     textAlignVertical: 'center',
+  },
+    alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalOverlay: {
     flex: 1,

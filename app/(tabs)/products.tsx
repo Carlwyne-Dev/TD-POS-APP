@@ -583,7 +583,7 @@ export default function ProductsScreen() {
 
       {/* Add Product Modal */}
       <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
-        <View style={styles.modalOverlay}>
+        <View style={styles.alertOverlay}>
           <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
           <View style={styles.modalContent}>
           <View style={styles.modalIndicator} />
@@ -678,7 +678,7 @@ export default function ProductsScreen() {
              />
 
              {isBulkMode && (
-               <View style={styles.inputRow}>
+               <View style={[styles.inputRow, { alignItems: 'flex-end' }]}>
                  <View style={{ flex: 1, marginRight: 12 }}>
                    <Text style={styles.inputLabel}>INITIAL STOCK (Packs)</Text>
                    <TextInput 
@@ -727,7 +727,7 @@ export default function ProductsScreen() {
               )}
 
               {isBulkMode && (
-                <View style={styles.inputRow}>
+                <View style={[styles.inputRow, { alignItems: 'flex-end' }]}>
                   <View style={{ flex: 1, marginRight: 12, justifyContent: 'flex-end' }}>
                     <Text style={styles.inputLabel}>PCS PER PACK</Text>
                     <TextInput 
@@ -753,7 +753,7 @@ export default function ProductsScreen() {
                 </View>
               )}
 
-              <View style={styles.inputRow}>
+              <View style={[styles.inputRow, { alignItems: 'flex-end' }]}>
                 <View style={{ flex: 1, marginRight: isBulkMode ? 12 : 0, justifyContent: 'flex-end' }}>
                   <Text style={styles.inputLabel}>UNIT COST (Buying ₱)</Text>
                   <TextInput 
@@ -1271,6 +1271,12 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     letterSpacing: 0.5,
+  },
+    alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalOverlay: {
     flex: 1,

@@ -231,7 +231,7 @@ export default function TransactionDetailScreen() {
 
       {/* Custom Alert Modal */}
       <Modal visible={alertVisible} transparent animationType="fade" onRequestClose={() => setAlertVisible(false)}>
-        <View style={styles.modalOverlay}>
+        <View style={styles.alertOverlay}>
           <BlurView intensity={25} tint="dark" style={StyleSheet.absoluteFill} />
           <Animated.View entering={ZoomIn} style={styles.alertCard}>
             {alertConfig.type === 'success' && <CheckCircle2 size={48} color={Theme.colors.primary} style={styles.alertIcon} />}
@@ -489,6 +489,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   // Custom Alert Styles
+    alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',

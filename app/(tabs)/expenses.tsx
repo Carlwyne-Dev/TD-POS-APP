@@ -184,7 +184,7 @@ export default function ExpensesScreen() {
       </TouchableOpacity>
 
       <Modal visible={modalVisible} animationType="fade" transparent onRequestClose={() => { setModalVisible(false); resetForm(); }}>
-        <View style={styles.modalOverlay}>
+        <View style={styles.alertOverlay}>
           <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -436,6 +436,12 @@ const styles = StyleSheet.create({
     fontFamily: Theme.typography.bodyMedium,
     color: Theme.colors.outline,
     fontSize: 16,
+  },
+    alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalOverlay: {
     flex: 1,

@@ -626,7 +626,7 @@ export default function ProductDetailScreen() {
 
       {/* Restock Modal */}
       <Modal visible={restockVisible} transparent animationType="fade" onRequestClose={() => setRestockVisible(false)}>
-        <View style={styles.modalOverlay}>
+        <View style={styles.alertOverlay}>
           <BlurView intensity={25} tint="dark" style={StyleSheet.absoluteFill} />
           <TouchableOpacity activeOpacity={1} style={StyleSheet.absoluteFill} onPress={() => setRestockVisible(false)} />
           <View style={styles.modalCard}>
@@ -832,7 +832,7 @@ export default function ProductDetailScreen() {
 
       {/* Edit Product Modal */}
       <Modal visible={editVisible} transparent animationType="fade" onRequestClose={() => setEditVisible(false)}>
-        <View style={styles.modalOverlay}>
+        <View style={styles.alertOverlay}>
           <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
           <TouchableOpacity activeOpacity={1} style={StyleSheet.absoluteFill} onPress={() => setEditVisible(false)} />
           <View style={styles.modalCard}>
@@ -1063,7 +1063,7 @@ export default function ProductDetailScreen() {
 
       {/* Log Detail Modal */}
       <Modal visible={detailVisible} transparent animationType="fade" onRequestClose={() => { setDetailVisible(false); setShowFullData(false); }}>
-        <View style={styles.modalOverlay}>
+        <View style={styles.alertOverlay}>
           <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
           <TouchableOpacity 
             activeOpacity={1} 
@@ -1197,7 +1197,7 @@ export default function ProductDetailScreen() {
 
       {/* Custom Alert Modal */}
       <Modal visible={alertVisible} transparent animationType="fade" onRequestClose={() => setAlertVisible(false)}>
-        <View style={styles.modalOverlay}>
+        <View style={styles.alertOverlay}>
           <BlurView intensity={25} tint="dark" style={StyleSheet.absoluteFill} />
           <View style={styles.alertCard}>
             {alertConfig.type === 'success' && <CheckCircle2 size={48} color={Theme.colors.primary} style={styles.alertIcon} />}
@@ -1515,6 +1515,12 @@ const styles = StyleSheet.create({
     fontFamily: Theme.typography.bodyBold,
     color: Theme.colors.tertiary,
     fontSize: 14,
+  },
+    alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalOverlay: {
     flex: 1,
