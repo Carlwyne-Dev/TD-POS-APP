@@ -406,27 +406,28 @@ export default function StatsScreen() {
           </View>
         </View>
 
-        {topSellingItems.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionTitleRow}>
-                <TrendingUp size={20} color={Theme.colors.primary} />
-                <Text style={styles.sectionTitle}>Top Sellers</Text>
-              </View>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleRow}>
+              <TrendingUp size={20} color={Theme.colors.primary} />
+              <Text style={styles.sectionTitle}>Top Sellers</Text>
             </View>
-            <View style={styles.alertsGrid}>
-              {topSellingItems.map(item => (
+          </View>
+          <View style={styles.alertsGrid}>
+            {topSellingItems.length > 0 ? (
+              topSellingItems.map(item => (
                 <View key={item.id} style={styles.alertCard}>
                   <View style={styles.alertInfo}>
                     <Text style={styles.alertName} numberOfLines={1}>{item.name}</Text>
                     <Text style={[styles.alertStatus, { color: Theme.colors.primary }]}>{item.count} items sold</Text>
                   </View>
                 </View>
-              ))}
-            </View>
+              ))
+            ) : (
+              <Text style={styles.emptyRecentText}>No items sold in this period.</Text>
+            )}
           </View>
-        )}
-
+        </View>
         <View style={styles.bentoGrid}>
           <Animated.View style={[styles.bentoCard, cashCardStyle]}>
             <View style={styles.bentoHeader}>
@@ -450,7 +451,18 @@ export default function StatsScreen() {
               ₱{(todaysProfit - todaysExpenses).toLocaleString()}
             </Text>
           </View>
+        </View>
 
+        <View style={styles.bentoGrid}>
+          <View style={[styles.bentoCard, { backgroundColor: '#eff6ff' }]}>
+            <View style={styles.bentoHeader}>
+              <Text style={styles.bentoLabel}>Cash On Hand</Text>
+              <Banknote size={14} color="#2563eb" />
+            </View>
+            <Text style={[styles.bentoValue, { color: '#2563eb' }]}>
+              ₱{(paymentStats.cash + todaysUtangCollected - todaysExpenses).toLocaleString()}
+            </Text>
+          </View>
         </View>
 
         {lowStockItems.length > 0 && (
