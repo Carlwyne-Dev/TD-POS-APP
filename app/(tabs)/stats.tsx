@@ -51,7 +51,8 @@ import {
   Settings,
   ChevronDown,
   RefreshCw,
-  ShoppingBag
+  ShoppingBag,
+  Banknote
 } from 'lucide-react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -375,91 +376,71 @@ export default function StatsScreen() {
           )}
         </Animated.View>
 
-        {/* Quick Summaries Bento */}
-        <View style={[styles.actionGrid, { flexWrap: 'wrap' }]}>
-          <View style={[styles.actionCard, { width: '47%' }]}>
-            <View style={[styles.actionIcon, { backgroundColor: '#fdf4ff' }]}>
-              <ShoppingBag size={20} color="#a21caf" />
+        {/* 1. Top Bento: Items Sold, Inv Value, Total Debt */}
+        <View style={styles.bentoGrid}>
+          <View style={[styles.bentoCard, { padding: 16, backgroundColor: '#fdf4ff' }]}>
+            <View style={styles.bentoHeader}>
+              <Text style={[styles.bentoLabel, { fontSize: 12 }]} numberOfLines={1}>Items Sold</Text>
+              <ShoppingBag size={14} color="#a21caf" />
             </View>
-            <Text style={styles.actionLabel}>{itemsSold}</Text>
-            <Text style={styles.actionSubLabel}>Items Sold</Text>
+            <Text style={[styles.bentoValue, { color: '#a21caf', fontSize: 20 }]}>{itemsSold}</Text>
           </View>
-          <TouchableOpacity style={[styles.actionCard, { width: '47%' }]} onPress={() => setShowCloseout(true)}>
-            <View style={[styles.actionIcon, { backgroundColor: '#defbe6' }]}>
-              <FileText size={20} color="#0a643b" />
+          <View style={[styles.bentoCard, { padding: 16, backgroundColor: '#fef3c7' }]}>
+            <View style={styles.bentoHeader}>
+              <Text style={[styles.bentoLabel, { fontSize: 12 }]} numberOfLines={1}>Inv. Value</Text>
+              <Package size={14} color="#92400e" />
             </View>
-            <Text style={styles.actionLabel}>Daily Report</Text>
-          </TouchableOpacity>
-          <View style={[styles.actionCard, { width: '47%' }]}>
-            <View style={[styles.actionIcon, { backgroundColor: '#fef3c7' }]}>
-              <Package size={20} color="#92400e" />
-            </View>
-            <Text style={styles.actionLabel}>₱{totalInventoryValue.toLocaleString()}</Text>
-            <Text style={styles.actionSubLabel}>Inv. Value</Text>
+            <Text style={[styles.bentoValue, { color: '#92400e', fontSize: 20 }]} numberOfLines={1}>₱{totalInventoryValue.toLocaleString()}</Text>
           </View>
-          <View style={[styles.actionCard, { width: '47%' }]}>
-            <View style={[styles.actionIcon, { backgroundColor: '#fee2e2' }]}>
-              <Wallet size={20} color="#b91c1c" />
+          <View style={[styles.bentoCard, { padding: 16, backgroundColor: '#fee2e2' }]}>
+            <View style={styles.bentoHeader}>
+              <Text style={[styles.bentoLabel, { fontSize: 12 }]} numberOfLines={1}>Total Debt</Text>
+              <Wallet size={14} color="#b91c1c" />
             </View>
-            <Text style={styles.actionLabel}>₱{totalDebt.toLocaleString()}</Text>
-            <Text style={styles.actionSubLabel}>Total Debt</Text>
+            <Text style={[styles.bentoValue, { color: '#b91c1c', fontSize: 20 }]} numberOfLines={1}>₱{totalDebt.toLocaleString()}</Text>
           </View>
         </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
+        {/* 2. Horizontal Top Sellers */}
+        <View style={{ marginBottom: 32 }}>
+          <View style={[styles.sectionHeader, { marginBottom: 16 }]}>
             <View style={styles.sectionTitleRow}>
-              <TrendingUp size={20} color={Theme.colors.primary} />
+              <TrendingUp size={18} color={Theme.colors.primary} />
               <Text style={styles.sectionTitle}>Top Sellers</Text>
             </View>
           </View>
-          <View style={styles.alertsGrid}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
             {topSellingItems.length > 0 ? (
               topSellingItems.map(item => (
-                <View key={item.id} style={styles.alertCard}>
-                  <View style={styles.alertInfo}>
-                    <Text style={styles.alertName} numberOfLines={1}>{item.name}</Text>
-                    <Text style={[styles.alertStatus, { color: Theme.colors.primary }]}>{item.count} items sold</Text>
-                  </View>
+                <View key={item.id} style={{ backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Theme.colors.outlineVariant, width: 140 }}>
+                  <Text style={{ fontWeight: '600', fontSize: 15 }} numberOfLines={1}>{item.name}</Text>
+                  <Text style={{ fontSize: 13, color: Theme.colors.primary, marginTop: 6 }}>{item.count} sold</Text>
                 </View>
               ))
             ) : (
-              <Text style={styles.emptyRecentText}>No items sold in this period.</Text>
+              <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Theme.colors.outlineVariant }}>
+                 <Text style={{ color: Theme.colors.onSurfaceVariant }}>No items sold in this period.</Text>
+              </View>
             )}
-          </View>
-        </View>
-        <View style={styles.bentoGrid}>
-          <Animated.View style={[styles.bentoCard, cashCardStyle]}>
-            <View style={styles.bentoHeader}>
-              <Text style={[styles.bentoLabel]}>{showGcash ? 'GCash Sales' : 'Cash Sales'}</Text>
-              <TouchableOpacity
-                style={[styles.bentoToggle, showGcash && styles.bentoToggleActive]}
-                onPress={() => setShowGcash(!showGcash)}
-                activeOpacity={0.7}
-              >
-                <RefreshCw size={12} color={showGcash ? '#FFF' : Theme.colors.outline} />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.bentoValue}>₱{(showGcash ? paymentStats.gcash : paymentStats.cash).toLocaleString()}</Text>
-          </Animated.View>
-          <View style={[styles.bentoCard, { backgroundColor: (todaysProfit - todaysExpenses) >= 0 ? '#f0fdf4' : '#fdf2f2' }]}>
-            <View style={styles.bentoHeader}>
-              <Text style={styles.bentoLabel}>Net Profit</Text>
-              <Info size={14} color={(todaysProfit - todaysExpenses) >= 0 ? '#16a34a' : Theme.colors.tertiary} />
-            </View>
-            <Text style={[styles.bentoValue, { color: (todaysProfit - todaysExpenses) >= 0 ? '#16a34a' : Theme.colors.tertiary }]}>
-              ₱{(todaysProfit - todaysExpenses).toLocaleString()}
-            </Text>
-          </View>
+          </ScrollView>
         </View>
 
+        {/* 3. Bottom Bento: Daily Report and Cash On Hand */}
         <View style={styles.bentoGrid}>
+          <TouchableOpacity style={[styles.bentoCard, { backgroundColor: '#defbe6' }]} onPress={() => setShowCloseout(true)}>
+            <View style={styles.bentoHeader}>
+              <Text style={styles.bentoLabel}>Daily Report</Text>
+              <FileText size={16} color="#0a643b" />
+            </View>
+            <Text style={[styles.bentoValue, { color: '#0a643b', fontSize: 16, marginTop: 4 }]}>View Summary</Text>
+          </TouchableOpacity>
+
           <View style={[styles.bentoCard, { backgroundColor: '#eff6ff' }]}>
             <View style={styles.bentoHeader}>
               <Text style={styles.bentoLabel}>Cash On Hand</Text>
-              <Banknote size={14} color="#2563eb" />
+              <Banknote size={16} color="#2563eb" />
             </View>
-            <Text style={[styles.bentoValue, { color: '#2563eb' }]}>
+            <Text style={[styles.bentoValue, { color: '#2563eb', fontSize: 22 }]} numberOfLines={1}>
               ₱{(paymentStats.cash + todaysUtangCollected - todaysExpenses).toLocaleString()}
             </Text>
           </View>
