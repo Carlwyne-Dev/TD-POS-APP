@@ -23,7 +23,9 @@ import {
   DollarSign,
   TrendingDown,
   Calendar,
-  Layers
+  Layers,
+  Banknote,
+  Smartphone
 } from 'lucide-react-native';
 import { Theme } from '../../constants/Theme';
 import { useTintin } from '../../context/TintinContext';
@@ -231,18 +233,20 @@ export default function ExpensesScreen() {
               </View>
 
               <Text style={styles.inputLabel}>PAID VIA</Text>
-              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+              <View style={{ flexDirection: 'row', backgroundColor: Theme.colors.surfaceVariant, borderRadius: 99, padding: 4, marginBottom: 16 }}>
                 <TouchableOpacity
                   onPress={() => setPaymentType('cash')}
-                  style={[styles.categoryChip, paymentType === 'cash' && styles.activeCategoryChip, { flex: 1, alignItems: 'center', paddingVertical: 12 }]}
+                  style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 99, backgroundColor: paymentType === 'cash' ? '#fff' : 'transparent' }}
                 >
-                  <Text style={[styles.categoryChipText, paymentType === 'cash' && styles.activeCategoryChipText]}>💵 Cash</Text>
+                  <Banknote size={15} color={paymentType === 'cash' ? Theme.colors.primary : Theme.colors.onSurfaceVariant} />
+                  <Text style={{ fontSize: 13, fontWeight: paymentType === 'cash' ? '700' : '500', color: paymentType === 'cash' ? Theme.colors.primary : Theme.colors.onSurfaceVariant }}>Cash</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => setPaymentType('gcash')}
-                  style={[styles.categoryChip, paymentType === 'gcash' && styles.activeCategoryChip, { flex: 1, alignItems: 'center', paddingVertical: 12 }]}
+                  style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 99, backgroundColor: paymentType === 'gcash' ? '#fff' : 'transparent' }}
                 >
-                  <Text style={[styles.categoryChipText, paymentType === 'gcash' && styles.activeCategoryChipText]}>📱 GCash</Text>
+                  <Smartphone size={15} color={paymentType === 'gcash' ? Theme.colors.primary : Theme.colors.onSurfaceVariant} />
+                  <Text style={{ fontSize: 13, fontWeight: paymentType === 'gcash' ? '700' : '500', color: paymentType === 'gcash' ? Theme.colors.primary : Theme.colors.onSurfaceVariant }}>GCash</Text>
                 </TouchableOpacity>
               </View>
 
