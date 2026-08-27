@@ -44,7 +44,7 @@ export default function SalesHistoryScreen() {
     const data = await getTransactions();
     const utangData = await getUtangRecords();
     
-    // Convert UtangRecords to Transaction-like objects for the list
+    
     const combinedUtang = utangData.map(r => ({
       id: r.id,
       items: r.items || [],
@@ -75,7 +75,7 @@ export default function SalesHistoryScreen() {
       filtered = allTransactions.filter(t => t.timestamp.startsWith(yesterdayStr));
     }
 
-    // Apply Category filter
+    
     if (activeCategory !== 'All') {
       filtered = filtered.filter(t => 
         t.items.some(item => {

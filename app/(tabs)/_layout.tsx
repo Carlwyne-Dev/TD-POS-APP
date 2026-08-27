@@ -109,7 +109,7 @@ export default function TabLayout() {
   const { say } = useTintin();
 
   React.useEffect(() => {
-    // Delay greeting so settings have time to load from AsyncStorage
+    
     // then greet exactly once on mount — no dependency on ownerName changes
     const timer = setTimeout(() => {
       const hour = new Date().getHours();
@@ -133,7 +133,7 @@ export default function TabLayout() {
   const handleSave = async () => {
     await updateSettings(tempSettings);
     
-    // Process demo data ONLY if it changed
+
     if (tempDemoActive !== isDemoActive) {
       setIsSeedLoading(true);
       try {
@@ -150,7 +150,7 @@ export default function TabLayout() {
       setIsSeedLoading(false);
     }
 
-    // Sync with server immediately to update owner name
+
         
     setIsSettingsOpen(false);
     setShowToast(true);
@@ -285,9 +285,9 @@ export default function TabLayout() {
           bottom: 0,
           left: 0,
           right: 0,
-          height: 0, // Collapses the default bar container
+          height: 0,
         },
-        tabBarBackground: () => null, // Explicitly remove default background
+        tabBarBackground: () => null,
         headerTitleStyle: {
           fontFamily: Theme.typography.headlineBlack,
           fontSize: 22,
@@ -574,7 +574,7 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   toastContainer: {
     position: 'absolute',
-    bottom: 120, // Display above tab bar
+    bottom: 120,
     left: 20,
     right: 20,
     zIndex: 9999,
@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: Theme.colors.surface, // Solid focus
+    backgroundColor: Theme.colors.surface,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 24,

@@ -148,7 +148,7 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  // Show our custom splash while fonts loading OR during the 2.5s branded delay
+
   if (!loaded || showSplash) {
     return <AppSplash />;
   }

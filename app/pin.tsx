@@ -66,7 +66,7 @@ export default function PinScreen() {
         }, 200);
       }
     } else {
-      // enter mode
+    
       const entered = pin + digit;
       setPin(entered);
       if (entered.length === 4) {

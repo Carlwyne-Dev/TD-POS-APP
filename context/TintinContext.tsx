@@ -21,7 +21,7 @@ export const TintinProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const timeoutRef = useRef<any>(null);
 
   const say = useCallback((text: string, type: TintinType = 'info') => {
-    // Clear existing timeout
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
