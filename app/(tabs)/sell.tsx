@@ -208,7 +208,7 @@ export default function SellScreen() {
     };
   }, []);
 
-  const PILL_WIDTH = width - 40; // screen width minus horizontal padding
+  const PILL_WIDTH = width - 40;
   const CIRCLE_SIZE = 64;
 
   const cartContainerAnimStyle = useAnimatedStyle(() => ({
@@ -376,7 +376,7 @@ export default function SellScreen() {
   useEffect(() => {
     const checkEOD = async () => {
       const hours = new Date().getHours();
-      if (hours < 18) return; // Only after 6 PM
+      if (hours < 18) return;
 
       // Only fire once per calendar day
       const today = new Date().toDateString();
@@ -1394,12 +1394,12 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   floatingCartContainerEmpty: {
-    right: -36, // Tucked off-screen to form a semi-circle
+    right: -36,
     width: 72,
     height: 72,
   },
   floatingCartContainerEmptyExpanded: {
-    right: 20, // Fully visible on-screen
+    right: 20,
     width: 72,
   },
   floatingCartContainerActive: {
@@ -1426,9 +1426,9 @@ const styles = StyleSheet.create({
   floatingCartPillEmpty: {
     width: 72,
     borderRadius: 36,
-    justifyContent: 'flex-start', // Align horizontal to left
-    alignItems: 'center', // Align vertical to center
-    paddingLeft: 12, // Center the icon inside the visible 36px
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingLeft: 12,
   },
   floatingCartPillEmptyExpanded: {
     width: 72,
@@ -1966,7 +1966,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.15)',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 20, // Circular Pill
+    borderRadius: 20,
     marginRight: 10,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
@@ -2147,7 +2147,7 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 18,
     includeFontPadding: false,
-    transform: [{ translateY: -2 }], // Nudge up for optical alignment with icon
+    transform: [{ translateY: -2 }],
   },
   // Shortcuts Style
   topProductsSection: {
@@ -2220,7 +2220,7 @@ const styles = StyleSheet.create({
   },
   scanFAB: {
     position: 'absolute',
-    bottom: 204, // Perfectly stacked above the cart button
+    bottom: 204,
     right: 20,
     backgroundColor: Theme.colors.primary,
     width: 72,
@@ -2319,7 +2319,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: Theme.colors.surfaceContainerHigh, // Darker Obsidian Tint
+    backgroundColor: Theme.colors.surfaceContainerHigh,
     padding: 12,
     borderRadius: 16,
     marginBottom: 8,
@@ -2404,11 +2404,11 @@ const styles = StyleSheet.create({
   // Custom Alert Styles
   alertCard: {
     width: width * 0.85,
-    backgroundColor: 'rgba(255,255,255,0.92)', // Crystal Glass
+    backgroundColor: 'rgba(255,255,255,0.92)',
     borderRadius: 32,
     padding: 32,
     alignItems: 'center',
-    // Premium shadow
+   
     elevation: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 16 },
@@ -2480,7 +2480,7 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     includeFontPadding: false,
-    transform: [{ translateY: -2 }], // Nudge up for perfect alignment with Chevron
+    transform: [{ translateY: -2 }],
   },
   lightingHintFloating: {
     position: 'absolute',
@@ -2530,7 +2530,7 @@ const styles = StyleSheet.create({
   },
   utangPromptCard: {
     width: '90%',
-    backgroundColor: 'rgba(255,255,255,0.95)', // Glassy prompt
+    backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 24,
     padding: 24,
     shadowColor: '#000',
@@ -2634,11 +2634,11 @@ const styles = StyleSheet.create({
   },
   cartPeekExtension: {
     position: 'absolute',
-    bottom: 85, // Lifted slightly for the tail
+    bottom: 85,
     left: 20,
     right: 40,
     alignItems: 'flex-start',
-    zIndex: 100, // Show above for smoothness
+    zIndex: 100,
   },
   peekBubbleContainer: {
     alignItems: 'flex-start',
@@ -2659,7 +2659,7 @@ const styles = StyleSheet.create({
     width: 220,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.5)',
-    overflow: 'hidden', // Force perfect corners
+    overflow: 'hidden',
   },
   peekTail: {
     width: 0,
@@ -2672,7 +2672,7 @@ const styles = StyleSheet.create({
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     borderTopColor: 'rgba(255,255,255,0.98)',
-    marginLeft: 24, // Position the tail
+    marginLeft: 24,
   },
   peekTitle: {
     fontFamily: Theme.typography.bodyBold,

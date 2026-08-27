@@ -79,7 +79,6 @@ export default function SuppliersScreen() {
     ]);
   };
 
-  // ─── FORM VIEW ───────────────────────────────────────────────────────────
   if (isEditing) {
     return (
       <SafeAreaView style={styles.container}>
@@ -158,7 +157,6 @@ export default function SuppliersScreen() {
     );
   }
 
-  // ─── LIST VIEW ───────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -338,7 +336,6 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.background,
   },
 
-  // ── Header ──────────────────────────────────────────────────────────────
   pageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -369,13 +366,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // ── Scroll container ────────────────────────────────────────────────────
   listContainer: {
     paddingHorizontal: 16,
     paddingBottom: 120,
   },
 
-  // ── Hero Card (matches mainStatCard) ────────────────────────────────────
   heroCard: {
     backgroundColor: Theme.colors.primary,
     borderRadius: 24,
@@ -422,7 +417,6 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
 
-  // ── Empty State ─────────────────────────────────────────────────────────
   emptyState: {
     alignItems: 'center',
     paddingVertical: 48,
@@ -471,7 +465,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 
-  // ── Supplier Cards ───────────────────────────────────────────────────────
   card: {
     backgroundColor: '#FFF',
     borderRadius: 24,
@@ -552,7 +545,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
 
-  // ── FAB ─────────────────────────────────────────────────────────────────
   fab: {
     position: 'absolute',
     right: 24,
@@ -570,7 +562,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
   },
 
-  // ── Form ─────────────────────────────────────────────────────────────────
   formContent: {
     paddingHorizontal: 20,
     paddingBottom: 60,

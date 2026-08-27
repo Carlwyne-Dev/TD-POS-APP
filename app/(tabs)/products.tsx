@@ -1112,7 +1112,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Theme.colors.surfaceContainerLowest,
-    borderRadius: 28, // Perfect pill for height 56
+    borderRadius: 28,
     paddingHorizontal: 16,
     height: 56,
     borderWidth: 1.5,
@@ -1261,7 +1261,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 120, // Raised to clear floating tab bar
+    bottom: 120,
     right: 24,
     backgroundColor: Theme.colors.primary,
     width: 64,
@@ -1293,7 +1293,7 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     padding: 32,
     alignItems: 'center',
-    // Premium shadow
+  
     elevation: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 16 },
@@ -1534,7 +1534,7 @@ const styles = StyleSheet.create({
   },
   scannerControls: {
     position: 'absolute',
-    bottom: 120, // Raised to clear floating tab bar
+    bottom: 120,
     left: 0,
     right: 0,
     alignItems: 'center',

@@ -14,7 +14,6 @@ const SETTINGS_KEY = '@sposify/settings';
 const WELCOME_KEY = '@sposify/welcome_seen';
 const PIN_KEY = '@sposify/pin';
 
-// Partitioning keys
 const TRANSACTION_MONTHS_KEY = '@sposify/transaction_months'; // Index of months YYYY-MM
 const TRANS_PARTITION_PREFIX = '@sposify/transactions/'; // @sposify/transactions/YYYY-MM
 
@@ -31,8 +30,6 @@ export async function getPIN(): Promise<string | null> {
     const stored = await AsyncStorage.getItem(PIN_KEY);
     if (!stored) return null;
 
-    // MIGRATION: If stored PIN is a 4-digit numeric string, it's plaintext.
-    // Hashed PINs (SHA-256) are 64 characters long hex strings.
     if (stored.length === 4 && /^\d+$/.test(stored)) {
       const hashed = await hashPIN(stored);
       await AsyncStorage.setItem(PIN_KEY, hashed); // Migrate to hashed version
@@ -79,8 +76,7 @@ async function registerMonthInIndex(monthKey: string): Promise<void> {
     let index: string[] = raw ? JSON.parse(raw) : [];
     if (!index.includes(monthKey)) {
       index.push(monthKey);
-      // Sort descending (latest months first)
-      index.sort((a, b) => b.localeCompare(a));
+        index.sort((a, b) => b.localeCompare(a));
       await AsyncStorage.setItem(TRANSACTION_MONTHS_KEY, JSON.stringify(index));
     }
   } catch (e) {
@@ -98,7 +94,7 @@ async function getMonthIndex(): Promise<string[]> {
 }
 
 export const DEFAULT_CATEGORIES = ['Food', 'Drinks', 'Personal Care', 'Household', 'Others'];
-export const CATEGORIES = DEFAULT_CATEGORIES; // For backward compatibility in legacy code
+export const CATEGORIES = DEFAULT_CATEGORIES; 
 
 const PRESET_PRODUCTS: Array<{name: string, price: number, category: string}> = [];
 
@@ -109,7 +105,7 @@ export async function getProducts(): Promise<Product[]> {
       return await seedPresetProducts();
     }
     const items: Product[] = JSON.parse(raw);
-    return items; // Show all products including preset ones
+    return items; 
   } catch (e) {
     console.error('Error fetching products:', e);
     return [];
@@ -179,7 +175,6 @@ async function migrateLegacyTransactions(): Promise<void> {
       return;
     }
 
-    // Group by month
     const groups: Record<string, Transaction[]> = {};
     for (const t of all) {
       const mk = getYearMonth(t.timestamp);
@@ -187,7 +182,6 @@ async function migrateLegacyTransactions(): Promise<void> {
       groups[mk].push(t);
     }
 
-    // Save each partition and update index
     for (const [mk, trans] of Object.entries(groups)) {
       const key = getPartitionKey(mk);
       // Multi-save logic (Legacy was already newest-first)
@@ -195,7 +189,6 @@ async function migrateLegacyTransactions(): Promise<void> {
       await registerMonthInIndex(mk);
     }
 
-    // Retire legacy key
     await AsyncStorage.removeItem(TRANSACTIONS_KEY);
     console.info(`MIGRATION: Success. Moved ${all.length} transactions to partitioned storage.`);
   } catch (e) {
@@ -214,8 +207,6 @@ export async function getTransactions(): Promise<Transaction[]> {
     if (index.length === 0) return [];
 
     let allTransactions: Transaction[] = [];
-    // Currently loads everything to maintain all-time stats, but partitioned keys match.
-    // Optimization: In a real POS, we'd limit this to 'Recent' or 'Current Year' only.
     for (const monthKey of index) {
       const raw = await AsyncStorage.getItem(getPartitionKey(monthKey));
       if (raw) {
@@ -234,7 +225,6 @@ export async function saveTransaction(transaction: Transaction): Promise<void> {
   try {
     const products = await getProducts();
     
-    // VALIDATION: Check if stock is sufficient for all items
     for (const item of transaction.items) {
       const p = products.find(p => p.id === item.productId);
       if (p) {
@@ -255,7 +245,6 @@ export async function saveTransaction(transaction: Transaction): Promise<void> {
     await AsyncStorage.setItem(partitionKey, JSON.stringify(transactions));
     await registerMonthInIndex(monthKey);
     
-    // Decrement stock
     transaction.items.forEach(item => {
       const p = products.find(p => p.id === item.productId);
       if (p) {
@@ -307,7 +296,6 @@ export async function voidTransaction(id: string): Promise<void> {
     let foundTrans: Transaction | null = null;
     let foundMK: string | null = null;
 
-    // Search partitions
     for (const mk of index) {
       const key = getPartitionKey(mk);
       const raw = await AsyncStorage.getItem(key);
@@ -342,7 +330,6 @@ export async function voidTransaction(id: string): Promise<void> {
     const filtered = trans.filter(t => t.id !== id);
     
     if (filtered.length === 0) {
-      // Remove empty partition and update index
       await AsyncStorage.removeItem(key);
       const updatedIndex = index.filter(m => m !== foundMK);
       await AsyncStorage.setItem(TRANSACTION_MONTHS_KEY, JSON.stringify(updatedIndex));
@@ -411,7 +398,6 @@ function mergeTransactionItems(existing?: TransactionItem[], incoming?: Transact
 export async function addUtangRecord(record: UtangRecord): Promise<void> {
   const products = await getProducts();
   
-  // VALIDATION: Check if stock is sufficient for all items
   if (record.items) {
     for (const item of record.items) {
       const p = products.find(p => p.id === item.productId);
@@ -431,7 +417,6 @@ export async function addUtangRecord(record: UtangRecord): Promise<void> {
   );
 
   if (existingIdx !== -1) {
-    // MERGE logic
     const existing = records[existingIdx];
     existing.amount += record.amount;
     existing.items = mergeTransactionItems(existing.items, record.items);
@@ -439,13 +424,12 @@ export async function addUtangRecord(record: UtangRecord): Promise<void> {
       existing.note = existing.note ? `${existing.note} | ${record.note}` : record.note;
     }
   } else {
-    // NEW record logic
     records.unshift(record);
   }
 
   await AsyncStorage.setItem(UTANG_KEY, JSON.stringify(records));
 
-  // Decrement stock for the INCOMING items
+  // decrement stock for incoming items
   if (record.items) {
     record.items.forEach(item => {
       const p = products.find(p => p.id === item.productId);
@@ -509,7 +493,7 @@ export async function markUtangPaid(id: string, paymentType: 'cash' | 'gcash'): 
       await AsyncStorage.setItem(UTANG_KEY, JSON.stringify(records));
 
       // Create a payment Transaction for stats — include original items for profit calc
-      // We use savePaymentTransaction so stock is NOT touched again.
+      
       const paymentTransaction: Transaction = {
         id: `pay-${record.id}-${Date.now()}`,
         items: record.items || [],
@@ -532,8 +516,6 @@ export async function deleteUtangRecord(id: string): Promise<void> {
     const record = records.find(r => r.id === id);
     if (!record) return;
 
-    // Optional: Should deleting a debt return stock to products? 
-    // Usually no, as the items were actually taken/used. Keeping as is.
     const filtered = records.filter((r) => r.id !== id);
     await AsyncStorage.setItem(UTANG_KEY, JSON.stringify(filtered));
   } catch (e) {
@@ -656,7 +638,6 @@ export async function exportData(): Promise<void> {
 
 export async function importData(): Promise<{ success: boolean; error?: string }> {
   try {
-    // Let user pick a JSON file
     const result = await (await import('expo-document-picker')).getDocumentAsync({
       type: 'application/json',
       copyToCacheDirectory: true,
@@ -670,12 +651,10 @@ export async function importData(): Promise<{ success: boolean; error?: string }
     const raw = await FileSystem.readAsStringAsync(uri);
     const backup = JSON.parse(raw);
 
-    // Validate it looks like a sPOSify backup
     if (typeof backup !== 'object' || backup === null) {
       return { success: false, error: 'Invalid backup file.' };
     }
 
-    // Restore each key that exists in the backup
     const validKeys = [PRODUCTS_KEY, TRANSACTIONS_KEY, UTANG_KEY, RESTOCKS_KEY, SETTINGS_KEY];
     const pairs: [string, string][] = [];
 
@@ -797,10 +776,8 @@ export async function seedDemoItems(): Promise<void> {
     }
   ];
 
-  // Load existing products
   let products = await getProducts();
   
-  // Filter out duplicates
   const existingIds = new Set(products.map(p => p.id));
   const newDemos = demoProducts.filter(dp => !existingIds.has(dp.id));
   
@@ -809,7 +786,6 @@ export async function seedDemoItems(): Promise<void> {
     await saveProducts(products);
   }
 
-  // Seed demo transactions over last 5 days if none exist
   const allTrans = await getTransactions();
   if (allTrans.length === 0) {
     const today = new Date();
@@ -878,7 +854,6 @@ export async function seedDemoItems(): Promise<void> {
     }
   }
 
-  // Seed demo Utang
   const allUtang = await getUtangRecords();
   if (allUtang.length === 0) {
     const today = new Date();
@@ -928,7 +903,6 @@ export async function seedDemoItems(): Promise<void> {
     await AsyncStorage.setItem(UTANG_KEY, JSON.stringify(demoUtang));
   }
 
-  // Seed demo Expenses
   const allExpenses = await getExpenses();
   if (allExpenses.length === 0) {
     const today = new Date();
@@ -955,11 +929,9 @@ export async function seedDemoItems(): Promise<void> {
 }
 
 export async function clearDemoItems(): Promise<void> {
-  // Remove demo products
   const products = await getProducts();
   await saveProducts(products.filter(p => !p.id.startsWith('demo-')));
 
-  // Remove demo transactions from every partition
   const index = await getMonthIndex();
   for (const mk of index) {
     const key = getPartitionKey(mk);
@@ -974,11 +946,9 @@ export async function clearDemoItems(): Promise<void> {
     }
   }
 
-  // Remove demo utang
   const utang = await getUtangRecords();
   await AsyncStorage.setItem(UTANG_KEY, JSON.stringify(utang.filter(u => !u.id.startsWith('demo-'))));
 
-  // Remove demo expenses
   const expenses = await getExpenses();
   await AsyncStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses.filter(e => !e.id.startsWith('demo-'))));
 }

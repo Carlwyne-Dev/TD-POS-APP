@@ -189,7 +189,7 @@ export default function StatsScreen() {
   };
 
   useEffect(() => {
-    setSelectedChartIndex(null); // reset selection on period change
+    setSelectedChartIndex(null);
     
     const now = new Date();
     const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
@@ -291,7 +291,7 @@ export default function StatsScreen() {
       collected: activeUtang.filter(r => r.isPaid).reduce((s, r) => s + r.amount, 0)
     });
 
-    // Combine real sales with utang records for the history list only
+
     const todayNewDebt = allUtangRecords
       .filter(r => getLocalISOString(r.createdAt).startsWith(todayStr))
       .map(r => ({
@@ -306,7 +306,7 @@ export default function StatsScreen() {
     const combined = [...activeData, ...todayNewDebt]
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-    // Apply History Filter
+
     let filtered = combined;
     if (historyFilter === 'sales') {
       filtered = combined.filter(t => (t as any).paymentType !== 'utang');
@@ -1327,7 +1327,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
-  // Settings
+
   settingsCard: {
     backgroundColor: '#FFF',
     borderRadius: 32,

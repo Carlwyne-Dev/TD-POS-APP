@@ -53,7 +53,7 @@ export default function UtangScreen() {
   const [pickerVisible, setPickerVisible] = useState(false);
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   
-  // Form State
+
   const [editingRecord, setEditingRecord] = useState<UtangRecord | null>(null);
   const [customerName, setCustomerName] = useState('');
   const [location, setLocation] = useState('');
@@ -63,14 +63,14 @@ export default function UtangScreen() {
   
   const [products, setProducts] = useState<Product[]>([]);
   const [showErrors, setShowErrors] = useState(false);
-  // Filter State
+
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
-  // Payment State
+
   const [payingRecord, setPayingRecord] = useState<UtangRecord | null>(null);
   const [paymentStep, setPaymentStep] = useState<'choose' | 'confirm_gcash'>('choose');
 
-  // Custom Alert State
+
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState<{
     title: string;
@@ -948,18 +948,18 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.05)', // Almost clear for blur
+    backgroundColor: 'rgba(255,255,255,0.05)',
     justifyContent: 'flex-end',
   },
   centeredOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.15)', // Lightened for BlurView
+    backgroundColor: 'rgba(0,0,0,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
   },
   modalContent: {
-    backgroundColor: Theme.colors.surface, // Solid focus
+    backgroundColor: Theme.colors.surface,
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     padding: 32,
