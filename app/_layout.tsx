@@ -1,11 +1,12 @@
 import 'react-native-gesture-handler';
-import { View, StyleSheet, ActivityIndicator, Animated as RNAnimated } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Animated as RNAnimated } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-reanimated';
 import { 
   Audio, 
@@ -103,6 +104,62 @@ const splashStyles = StyleSheet.create({
 });
 
 
+// --- KILL SWITCH LOGIC ---
+const ADMIN_URL = "https://YOUR-VERCEL-URL.vercel.app"; // Replace with your Vercel URL
+
+function useKillSwitch() {
+  const [isLocked, setIsLocked] = useState(false);
+
+  useEffect(() => {
+    async function checkLockStatus() {
+      try {
+        // 1. Get or create a unique device ID
+        let deviceId = await AsyncStorage.getItem('@sposify/device_id');
+        if (!deviceId) {
+          deviceId = 'device_' + Math.random().toString(36).substr(2, 9);
+          await AsyncStorage.setItem('@sposify/device_id', deviceId);
+        }
+
+        // 2. Check remote status
+        const res = await fetch(`${ADMIN_URL}/api/check?deviceId=${deviceId}&name=Store`);
+        const data = await res.json();
+        
+        if (data && data.locked === true) {
+          setIsLocked(true);
+          await AsyncStorage.setItem('@sposify/locked', 'true');
+        } else {
+          setIsLocked(false);
+          await AsyncStorage.setItem('@sposify/locked', 'false');
+        }
+      } catch (e) {
+        // Offline fallback: check last known status
+        const savedLock = await AsyncStorage.getItem('@sposify/locked');
+        if (savedLock === 'true') setIsLocked(true);
+      }
+    }
+    
+    // Check after 2 seconds to not block startup
+    if (ADMIN_URL !== "https://YOUR-VERCEL-URL.vercel.app") {
+      setTimeout(checkLockStatus, 2000);
+    }
+  }, []);
+
+  return isLocked;
+}
+
+function LockedOverlay() {
+  return (
+    <View style={[StyleSheet.absoluteFill, { backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', zIndex: 9999, padding: 24 }]}>
+      <FontAwesome name="lock" size={64} color="#DF7A96" style={{ marginBottom: 20 }} />
+      <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 24, color: '#DF7A96', marginBottom: 12 }}>App Locked</Text>
+      <Text style={{ fontFamily: 'Manrope-Medium', fontSize: 16, color: '#666', textAlign: 'center' }}>
+        This application has been locked by the developer. Please contact support to resolve this issue and restore access.
+      </Text>
+    </View>
+  );
+}
+// -----------------------
+
 export default function RootLayout() {
   const appStartTime = useRef(Date.now()).current;
   const [loaded, error] = useFonts({
@@ -149,6 +206,8 @@ export default function RootLayout() {
   }, [loaded]);
 
 
+  const isLocked = useKillSwitch();
+
   if (!loaded || showSplash) {
     return <AppSplash />;
   }
@@ -157,6 +216,7 @@ export default function RootLayout() {
     <SettingsProvider>
       <TintinProvider>
         <View style={{ flex: 1, backgroundColor: Theme.colors.background }}>
+          {isLocked && <LockedOverlay />}
           <RootLayoutNav />
         </View>
       </TintinProvider>
