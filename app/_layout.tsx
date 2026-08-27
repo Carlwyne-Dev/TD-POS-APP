@@ -105,7 +105,7 @@ const splashStyles = StyleSheet.create({
 
 
 // --- KILL SWITCH LOGIC ---
-const ADMIN_URL = "https://YOUR-VERCEL-URL.vercel.app"; // Replace with your Vercel URL
+const ADMIN_URL = "https://client-admin-kill.vercel.app";
 
 function useKillSwitch() {
   const [isLocked, setIsLocked] = useState(false);
