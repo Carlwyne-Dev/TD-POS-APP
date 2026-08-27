@@ -124,7 +124,7 @@ export default function PinScreen() {
         <View style={styles.logoPill}>
           <Text style={styles.logoText}>TD</Text>
         </View>
-        <Text style={styles.appName}>TindaDone</Text>
+        <Text style={styles.appName}>sPOSify</Text>
       </View>
 
       {/* Messaging */}

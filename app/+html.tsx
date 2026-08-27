@@ -12,9 +12,9 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
-        <title>TindaDone - Micro-ERP & POS</title>
+        <title>sPOSify - Micro-ERP & POS</title>
         <meta name="description" content="Professional Micro-ERP and POS system for small businesses. Manage inventory, sales, and credit (Utang) with ease." />
-        <meta property="og:title" content="TindaDone - Professional POS" />
+        <meta property="og:title" content="sPOSify - Professional POS" />
         <meta property="og:description" content="Effortless inventory and sales tracking for small retail stores." />
         <meta property="og:type" content="website" />
 

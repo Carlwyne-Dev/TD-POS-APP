@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "TindaDone",
-    "slug": "tindadone",
+    "name": "sPOSify",
+    "slug": "sposify",
     "version": "1.0.2",
-    "description": "TindaDone: The ultimate productivity and inventory manager for small businesses.",
-    "githubUrl": "https://github.com/Carlwyne-Dev/TindaDone",
+    "description": "sPOSify: The ultimate productivity and inventory manager for small businesses.",
+    "githubUrl": "https://github.com/Carlwyne-Dev/sPOSify",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "tindadone",
+    "scheme": "sposify",
     "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/loading.png",
@@ -16,11 +16,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.carlwyne.tindadone",
+      "bundleIdentifier": "com.carlwyne.sposify",
       "buildNumber": "2"
     },
     "android": {
-      "package": "com.carlwyne.tindadone",
+      "package": "com.carlwyne.sposify",
       "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -42,10 +42,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "eas": {
-        "projectId": "53224526-2727-480a-8153-f68714be3757"
-      },
       "router": {}
-    }
   }
 }
+

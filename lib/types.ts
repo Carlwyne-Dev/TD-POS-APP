@@ -1,4 +1,5 @@
 export type Product = {
+  supplierId?: string;
   id: string;
   name: string;
   price: number;
@@ -30,6 +31,7 @@ export type Transaction = {
   total: number;
   paymentType: 'cash' | 'gcash';
   timestamp: string;
+  supplierId?: string;
 };
 
 export type UtangRecord = {
@@ -66,6 +68,7 @@ export type Expense = {
   category: string;
   paymentType: 'cash' | 'gcash';
   timestamp: string;
+  supplierId?: string;
 };
 
 export type BusinessSettings = {
@@ -75,4 +78,14 @@ export type BusinessSettings = {
   scannerVibrate?: boolean;
   enableBulkMode?: boolean;
   customCategories?: string[];
+};
+
+export type Supplier = {
+  id: string;
+  name: string;
+  contactPerson?: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  createdAt: number;
 };

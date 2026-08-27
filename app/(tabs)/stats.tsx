@@ -511,7 +511,7 @@ export default function StatsScreen() {
         {/* Cash Sales & Net Profit */}
         <View style={styles.bentoGrid}>
           <TouchableOpacity 
-            style={[styles.bentoCard, cashCardStyle]}
+            style={[styles.bentoCard, { backgroundColor: '#FFFFFF' }]}
             onPress={() => setShowSalesBreakdown(true)}
           >
             <View style={styles.bentoHeader}>
@@ -703,7 +703,7 @@ export default function StatsScreen() {
             >
             <View style={styles.summaryHeader}>
               <Store size={40} color={Theme.colors.primary} style={{ marginBottom: 12 }} />
-              <Text style={styles.summaryTitle}>{businessSettings.ownerName || 'TindaDone'}</Text>
+              <Text style={styles.summaryTitle}>{businessSettings.ownerName || 'sPOSify'}</Text>
               <Text style={styles.summarySubtitle}>Daily Performance Report</Text>
               <Text style={styles.summaryDate}>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Text>
             </View>

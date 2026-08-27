@@ -402,8 +402,7 @@ export default function UtangScreen() {
 
       {/* Entry Modal */}
       <Modal visible={modalVisible} animationType="fade" transparent onRequestClose={() => { setModalVisible(false); resetForm(); }}>
-        <View style={styles.alertOverlay}>
-          <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
+        <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{editingRecord ? 'Edit Utang' : 'New Utang'}</Text>

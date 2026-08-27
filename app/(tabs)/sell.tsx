@@ -78,7 +78,7 @@ import { getTransactions, getProducts, saveTransaction, hasSeenWelcome, markWelc
 import { useSettings } from '../../context/SettingsContext';
 import { Product, TransactionItem, BusinessSettings, UtangRecord } from '../../lib/types';
 import { getTopSoldProducts } from '../../lib/calculations';
-import { getTrialStatus, isActivated, syncTrialWithServer, syncActivationStatus, TrialStatus } from '../../lib/license';
+
 import { Theme } from '../../constants/Theme';
 import { useTintin } from '../../context/TintinContext';
 
@@ -183,8 +183,8 @@ export default function SellScreen() {
   const [utangModalVisible, setUtangModalVisible] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [qtyModalVisible, setQtyModalVisible] = useState(false);
-  const [activated, setActivated] = useState(false);
-  const [trial, setTrial] = useState<TrialStatus | null>(null);
+
+
   const [editingItem, setEditingItem] = useState<TransactionItem | null>(null);
   const [tempQty, setTempQty] = useState('');
   const [isCartPeeking, setIsCartPeeking] = useState(false);
@@ -306,7 +306,7 @@ export default function SellScreen() {
     React.useCallback(() => {
       const task = InteractionManager.runAfterInteractions(() => {
         loadProducts();
-        checkLicense();
+  
         checkFirstLaunch();
         loadBeep();
       });
@@ -365,33 +365,13 @@ export default function SellScreen() {
     setTimeout(() => {
       Alert.alert(
         'All Set!',
-        `Welcome to TindaDone, ${ownerName.trim()}! 🎉\n\nWant to test the app before using it? Go to the Settings tab and turn on "Seed Demo Data" to load sample products and sales.`,
+        `Welcome to sPOSify, ${ownerName.trim()}! 🎉\n\nWant to test the app before using it? Go to the Settings tab and turn on "Seed Demo Data" to load sample products and sales.`,
         [{ text: 'Got it!' }]
       );
     }, 10000);
     setShowWelcome(false);
   };
 
-  const checkLicense = async () => {
-    let active = await isActivated();
-    
-    // HYBRID SYNC: Silent check with server in background
-    if (active) {
-      await syncActivationStatus();
-      active = await isActivated();
-    } else {
-      await syncTrialWithServer();
-    }
-    
-    setActivated(active);
-    
-    const status = await getTrialStatus();
-    setTrial(status);
-    
-    if (!active && status.expired) {
-      router.replace('/activate');
-    }
-  };
 
   useEffect(() => {
     const checkEOD = async () => {
@@ -400,10 +380,10 @@ export default function SellScreen() {
 
       // Only fire once per calendar day
       const today = new Date().toDateString();
-      const lastFired = await AsyncStorage.getItem('@tindadone/eod_notif_date');
+      const lastFired = await AsyncStorage.getItem('@sposify/eod_notif_date');
       if (lastFired === today) return;
 
-      await AsyncStorage.setItem('@tindadone/eod_notif_date', today);
+      await AsyncStorage.setItem('@sposify/eod_notif_date', today);
       // Small delay so it doesn't fire during splash/loading
       setTimeout(() => {
         tintin.say("It's been a busy day! Ready to generate your Daily Performance report?", 'info');
@@ -737,13 +717,6 @@ export default function SellScreen() {
           <Settings size={22} color={Theme.colors.primary} />
         </TouchableOpacity>
       </View>
-      {/* Trial Countdown Banner */}
-      {!activated && trial?.active && (
-        <View style={styles.trialBanner}>
-          <Clock size={12} color="#FFF" />
-          <Text style={styles.trialBannerText}>Free Trial Active — {trial.hoursLeft}h remaining</Text>
-        </View>
-      )}
 
       <FlatList
         data={(() => {
@@ -1206,7 +1179,7 @@ export default function SellScreen() {
           <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
           <View style={styles.welcomeCard}>
             <Rocket size={64} color={Theme.colors.primary} style={{ marginBottom: 20 }} />
-            <Text style={styles.welcomeTitle}>Welcome to TindaDone!</Text>
+            <Text style={styles.welcomeTitle}>Welcome to sPOSify!</Text>
             <Text style={styles.welcomeDesc}>Your store is ready to go. You can start adding items or making sales right away!</Text>
             <TouchableOpacity 
               style={styles.welcomeBtn} 

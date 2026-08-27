@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-import { View, Image, StyleSheet, ActivityIndicator, Animated as RNAnimated } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Animated as RNAnimated } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -7,7 +7,6 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef, useState } from 'react';
 import 'react-native-reanimated';
-import { isActivated, getTrialStatus } from '../lib/license';
 import { 
   Audio, 
   InterruptionModeAndroid, 
@@ -33,8 +32,6 @@ import { useColorScheme } from '../components/useColorScheme';
 import { Theme } from '../constants/Theme';
 import { SettingsProvider } from '../context/SettingsContext';
 import { TintinProvider } from '../context/TintinContext';
-import { TintinMascot } from '../components/TintinMascot';
-import { syncActivationStatus } from '../lib/license';
 
 export {
   ErrorBoundary,
@@ -71,12 +68,6 @@ function AppSplash() {
       <View style={splashStyles.logoWrap}>
         {/* Spinning green arc around the image */}
         <RNAnimated.View style={[splashStyles.ring, { transform: [{ rotate }] }]} />
-        {/* Mascot image in the center */}
-        <Image
-          source={require('../assets/loading.png')}
-          style={splashStyles.logo}
-          resizeMode="contain"
-        />
       </View>
     </View>
   );
@@ -85,7 +76,7 @@ function AppSplash() {
 const splashStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F9F6',
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -101,7 +92,7 @@ const splashStyles = StyleSheet.create({
     height: 160,
     borderRadius: 80,
     borderWidth: 5,
-    borderColor: '#0a643b',
+    borderColor: '#e3849f',
     borderTopColor: 'transparent',
     borderRightColor: 'transparent',
   },
@@ -139,7 +130,6 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
 
       // Step 2: Run non-blocking init
-      syncActivationStatus();
       Audio.setAudioModeAsync({
         playsInSilentModeIOS: true,
         allowsRecordingIOS: false,
@@ -168,7 +158,6 @@ export default function RootLayout() {
       <TintinProvider>
         <View style={{ flex: 1, backgroundColor: Theme.colors.background }}>
           <RootLayoutNav />
-          <TintinMascot />
         </View>
       </TintinProvider>
     </SettingsProvider>
@@ -177,22 +166,6 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const [canEnter, setCanEnter] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const checkAccess = async () => {
-      const activated = await isActivated();
-      if (activated) {
-        setCanEnter(true);
-        return;
-      }
-      const trial = await getTrialStatus();
-      setCanEnter(trial.active);
-    };
-    checkAccess();
-  }, []);
-
-  if (canEnter === null) return <AppSplash />;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -204,7 +177,6 @@ function RootLayoutNav() {
           animation: 'slide_from_right',
           animationDuration: 220,
         }}>
-          <Stack.Screen name="activate" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="sales-history" options={{ headerShown: false }} />
           <Stack.Screen name="product/[id]" options={{ headerShown: false }} />

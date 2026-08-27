@@ -3,20 +3,20 @@ import * as Crypto from 'expo-crypto';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
-import { Product, Transaction, TransactionItem, UtangRecord, RestockLog, BusinessSettings, Expense } from './types';
+import { Product, Transaction, TransactionItem, UtangRecord, RestockLog, BusinessSettings, Expense, Supplier } from './types';
 
-const PRODUCTS_KEY = '@tindadone/products';
-const TRANSACTIONS_KEY = '@tindadone/transactions';
-const UTANG_KEY = '@tindadone/utang';
-const RESTOCKS_KEY = '@tindadone/restocks';
-const EXPENSES_KEY = '@tindadone/expenses';
-const SETTINGS_KEY = '@tindadone/settings';
-const WELCOME_KEY = '@tindadone/welcome_seen';
-const PIN_KEY = '@tindadone/pin';
+const PRODUCTS_KEY = '@sposify/products';
+const TRANSACTIONS_KEY = '@sposify/transactions';
+const UTANG_KEY = '@sposify/utang';
+const RESTOCKS_KEY = '@sposify/restocks';
+const EXPENSES_KEY = '@sposify/expenses';
+const SETTINGS_KEY = '@sposify/settings';
+const WELCOME_KEY = '@sposify/welcome_seen';
+const PIN_KEY = '@sposify/pin';
 
 // Partitioning keys
-const TRANSACTION_MONTHS_KEY = '@tindadone/transaction_months'; // Index of months YYYY-MM
-const TRANS_PARTITION_PREFIX = '@tindadone/transactions/'; // @tindadone/transactions/YYYY-MM
+const TRANSACTION_MONTHS_KEY = '@sposify/transaction_months'; // Index of months YYYY-MM
+const TRANS_PARTITION_PREFIX = '@sposify/transactions/'; // @sposify/transactions/YYYY-MM
 
 
 export async function hashPIN(pin: string): Promise<string> {
@@ -637,13 +637,13 @@ export async function exportData(): Promise<void> {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'tindadone_backup.json';
+      link.download = 'sposify_backup.json';
       link.click();
       URL.revokeObjectURL(url);
       return;
     }
 
-    const uri = (FileSystem.documentDirectory || '') + 'tindadone_backup.json';
+    const uri = (FileSystem.documentDirectory || '') + 'sposify_backup.json';
     await FileSystem.writeAsStringAsync(uri, dataStr);
     
     if (await Sharing.isAvailableAsync()) {
@@ -670,7 +670,7 @@ export async function importData(): Promise<{ success: boolean; error?: string }
     const raw = await FileSystem.readAsStringAsync(uri);
     const backup = JSON.parse(raw);
 
-    // Validate it looks like a TindaDone backup
+    // Validate it looks like a sPOSify backup
     if (typeof backup !== 'object' || backup === null) {
       return { success: false, error: 'Invalid backup file.' };
     }
@@ -981,4 +981,52 @@ export async function clearDemoItems(): Promise<void> {
   // Remove demo expenses
   const expenses = await getExpenses();
   await AsyncStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses.filter(e => !e.id.startsWith('demo-'))));
+}
+
+// --- SUPPLIERS ---
+export const SUPPLIERS_KEY = '@sPOSify_suppliers';
+
+export async function getSuppliers(): Promise<Supplier[]> {
+  try {
+    const raw = await AsyncStorage.getItem(SUPPLIERS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error('Error fetching suppliers:', e);
+    return [];
+  }
+}
+
+export async function saveSuppliers(suppliers: Supplier[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(SUPPLIERS_KEY, JSON.stringify(suppliers));
+  } catch (e) {
+    console.error('Error saving suppliers:', e);
+  }
+}
+
+export async function addSupplier(supplier: Omit<Supplier, 'id' | 'createdAt'>): Promise<Supplier> {
+  const suppliers = await getSuppliers();
+  const newSupplier: Supplier = {
+    ...supplier,
+    id: Math.random().toString(36).substring(2, 9),
+    createdAt: Date.now(),
+  };
+  suppliers.unshift(newSupplier);
+  await saveSuppliers(suppliers);
+  return newSupplier;
+}
+
+export async function updateSupplier(id: string, updates: Partial<Supplier>): Promise<void> {
+  const suppliers = await getSuppliers();
+  const index = suppliers.findIndex((s) => s.id === id);
+  if (index > -1) {
+    suppliers[index] = { ...suppliers[index], ...updates };
+    await saveSuppliers(suppliers);
+  }
+}
+
+export async function deleteSupplier(id: string): Promise<void> {
+  const suppliers = await getSuppliers();
+  const updated = suppliers.filter((s) => s.id !== id);
+  await saveSuppliers(updated);
 }

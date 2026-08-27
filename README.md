@@ -1,10 +1,10 @@
-# TindaDone 🏪
+# sPOSify 🏪
 
 > **A fast, modern, and offline-first store management tool built for sari-sari stores, boutiques, and local businesses.**
 
 Running a small retail business can be chaotic. Between manual inventory tracking, slow sales recording, and managing customer *utang* (credit), things can quickly become overwhelming. 
 
-**TindaDone** simplifies your daily store operations. It provides a reliable, professional-grade management experience that works entirely offline, helping store owners focus less on manual tracking and more on growing their business.
+**sPOSify** simplifies your daily store operations. It provides a reliable, professional-grade management experience that works entirely offline, helping store owners focus less on manual tracking and more on growing their business.
 
 ---
 
@@ -49,7 +49,7 @@ Understand how your business performs daily.
 - Inventory Value and Outstanding Credit
 
 ### ☁️ Offline-First Reliability
-TindaDone is built for real-world business conditions. Even with unstable internet, core operations remain fully functional:
+sPOSify is built for real-world business conditions. Even with unstable internet, core operations remain fully functional:
 ✅ Recording sales works
 ✅ Inventory updates work
 ✅ Credit logging works
@@ -57,7 +57,7 @@ TindaDone is built for real-world business conditions. Even with unstable intern
 ---
 
 ## 🎨 User Experience
-TindaDone is designed to feel modern, intuitive, and extremely fast.
+sPOSify is designed to feel modern, intuitive, and extremely fast.
 - Clean premium interface
 - Smooth micro-animations
 - Soft glassmorphism-inspired visuals
@@ -67,6 +67,6 @@ TindaDone is designed to feel modern, intuitive, and extremely fast.
 ---
 
 ### ⚠️ Disclaimer
-**TindaDone is a store management and internal record-keeping tool designed for sari-sari stores and small businesses. It helps users manage sales, inventory, *utang*, expenses, and reports for daily operations.**
+**sPOSify is a store management and internal record-keeping tool designed for sari-sari stores and small businesses. It helps users manage sales, inventory, *utang*, expenses, and reports for daily operations.**
 
-**TindaDone currently does not issue official BIR receipts and is not a substitute for BIR-accredited POS systems where legally required.**
+**sPOSify currently does not issue official BIR receipts and is not a substitute for BIR-accredited POS systems where legally required.**

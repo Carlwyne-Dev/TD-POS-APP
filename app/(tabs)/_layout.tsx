@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet, Dimensions, Text, Modal, TextInput, Switch, Alert, Platform, InteractionManager, Image, ScrollView, useWindowDimensions } from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
 import { Package, ShoppingBag, BarChart2, ReceiptText, Settings, X, Store, User, QrCode, Volume2, Vibrate as VibrateIcon, Database, Camera, Save, FileText, CheckCircle2, Plus, Upload } from 'lucide-react-native';
-import { isActivated, getTrialStatus, syncActivationStatus, syncTrialWithServer } from '../../lib/license';
+
 import * as ImagePicker from 'expo-image-picker';
 import Animated, { 
   useAnimatedStyle, 
@@ -100,7 +100,7 @@ export default function TabLayout() {
   const [tempSettings, setTempSettings] = React.useState<BusinessSettings>(businessSettings);
   const [newCategory, setNewCategory] = React.useState('');
   const [showToast, setShowToast] = React.useState(false);
-  const [trialExpired, setTrialExpired] = React.useState(false);
+  
   const [showSeedConfirm, setShowSeedConfirm] = React.useState(false);
   const [isSeedLoading, setIsSeedLoading] = React.useState(false);
   const [isDemoActive, setIsDemoActive] = React.useState(false);
@@ -122,23 +122,7 @@ export default function TabLayout() {
     }, 3500);
 
     return () => clearTimeout(timer);
-  }, []); // ← empty deps: fires exactly once on mount
-
-  // Security Guard: Ensure user has valid trial or activation
-  React.useEffect(() => {
-    const checkAuth = async () => {
-      const activated = await isActivated();
-      if (activated) return;
-      const trial = await getTrialStatus();
-      // Only show the expired popup if trial has ACTUALLY expired, not for new users
-      if (trial.expired && !trial.notStarted) {
-        setTrialExpired(true);
-      }
-    };
-    checkAuth();
-  }, []);
-
-  // Update tempSettings ONLY when businessSettings actually change from context or background load
+  }, []); // ← empty deps: fires exactly once on mount// Update tempSettings ONLY when businessSettings actually change from context or background load
   React.useEffect(() => {
     if (isSettingsOpen) {
       setTempSettings(businessSettings);
@@ -167,9 +151,7 @@ export default function TabLayout() {
     }
 
     // Sync with server immediately to update owner name
-    syncActivationStatus();
-    syncTrialWithServer();
-
+        
     setIsSettingsOpen(false);
     setShowToast(true);
     setTimeout(() => {
@@ -370,60 +352,6 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
-
-    <Modal
-      visible={trialExpired}
-      animationType="fade"
-      transparent={true}
-      // No onRequestClose so android hardware back button doesn't bypass it!
-    >
-      <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
-        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-        
-        <View style={{ 
-          width: '88%', 
-          padding: 28, 
-          borderRadius: 24, 
-          backgroundColor: Theme.colors.surface, 
-          elevation: 20, 
-          shadowColor: '#000', 
-          shadowOpacity: 0.3, 
-          shadowRadius: 20,
-          alignItems: 'center',
-        }}>
-          <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: Theme.colors.errorContainer, justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}>
-            <ShoppingBag size={32} color={Theme.colors.error} />
-          </View>
-          
-          <Text style={{ fontFamily: Theme.typography.headlineBlack, fontSize: 22, color: Theme.colors.onSurface, textAlign: 'center', marginBottom: 12 }}>
-            Your 7-Day Free Trial has ended.
-          </Text>
-          
-          <Text style={{ fontFamily: Theme.typography.body, fontSize: 14, color: Theme.colors.onSurfaceVariant, textAlign: 'center', lineHeight: 21, marginBottom: 24 }}>
-            For the last 7 days, you've built your inventory and tracked your sales. Don't lose this momentum!{' '}Activate TindaDone permanently to keep all your records safe.
-          </Text>
-          
-          <TouchableOpacity 
-            style={{ 
-              width: '100%', 
-              backgroundColor: Theme.colors.primary, 
-              borderRadius: 20, 
-              height: 56, 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              elevation: 4,
-            }}
-            onPress={() => {
-              setTrialExpired(false);
-              router.replace('/activate');
-            }}
-            activeOpacity={0.8}
-          >
-            <Text style={{ fontFamily: Theme.typography.headlineBlack, fontSize: 16, color: '#FFF' }}>Unlock Permanent Access</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
 
     <Modal
       visible={isSettingsOpen}

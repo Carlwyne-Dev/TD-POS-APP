@@ -1,14 +1,14 @@
 export const Theme = {
   colors: {
-    primary: '#0a643b',
-    primaryContainer: '#2e7d52',
+    primary: '#e3849f',
+    primaryContainer: '#f9c5d5',
     onPrimary: '#ffffff',
-    onPrimaryContainer: '#ceffdb',
+    onPrimaryContainer: '#592031',
     
-    secondary: '#486551',
-    secondaryContainer: '#caebd1',
+    secondary: '#b3919a',
+    secondaryContainer: '#f0dce1',
     onSecondary: '#ffffff',
-    onSecondaryContainer: '#4e6b57',
+    onSecondaryContainer: '#452b31',
     
     tertiary: '#ad1220',
     tertiaryContainer: '#d13035',
@@ -18,20 +18,20 @@ export const Theme = {
     onTertiaryFixed: '#410002',
     onTertiaryFixedVariant: '#680005',
     
-    background: '#f7faf4',
-    surface: '#f7faf4',
-    surfaceVariant: '#e0e4dd',
+    background: '#ffffff',
+    surface: '#ffffff',
+    surfaceVariant: '#e9e9e9',
     surfaceContainerLowest: '#ffffff',
-    surfaceContainerLow: '#f1f5ee',
-    surfaceContainer: '#ebefe9',
-    surfaceContainerHigh: '#e6e9e3',
-    surfaceContainerHighest: '#e0e4dd',
+    surfaceContainerLow: '#f9f9f9',
+    surfaceContainer: '#f5f5f5',
+    surfaceContainerHigh: '#efefef',
+    surfaceContainerHighest: '#e9e9e9',
     
-    onSurface: '#181d19',
-    onSurfaceVariant: '#3f4941',
+    onSurface: '#1f1a1c',
+    onSurfaceVariant: '#4f4446',
     
-    outline: '#6f7a71',
-    outlineVariant: '#bfc9bf',
+    outline: '#827376',
+    outlineVariant: '#d4c2c5',
     
     error: '#ba1a1a',
     errorContainer: '#ffdad6',

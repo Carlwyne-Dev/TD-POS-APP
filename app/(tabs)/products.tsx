@@ -34,15 +34,16 @@ import {
   CheckCircle2,
   Info,
   Tag,
-  Settings
+  Settings,
+  Building
 } from 'lucide-react-native';
 import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Audio } from 'expo-av';
-import { getProducts, addProduct, DEFAULT_CATEGORIES } from '../../lib/storage';
+import { getProducts, addProduct, getSuppliers, DEFAULT_CATEGORIES } from '../../lib/storage';
 import { useSettings } from '../../context/SettingsContext';
-import { Product, BusinessSettings } from '../../lib/types';
+import { Product, BusinessSettings, Supplier } from '../../lib/types';
 import { Theme } from '../../constants/Theme';
 import { useTintin } from '../../context/TintinContext';
 
@@ -59,6 +60,7 @@ export default function ProductsScreen() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [search, setSearch] = useState('');
   const [isLowStockFilterExplicitlyActive, setIsLowStockFilterExplicitlyActive] = useState(false);
   
@@ -67,6 +69,7 @@ export default function ProductsScreen() {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [costPrice, setCostPrice] = useState('');
+  const [supplierId, setSupplierId] = useState<string | undefined>(undefined);
   const [category, setCategory] = useState(categories.includes('Others') ? 'Others' : (categories[categories.length - 1] || 'Others'));
   const [unit, setUnit] = useState('pc');
   const [threshold, setThreshold] = useState('5');
@@ -160,6 +163,8 @@ export default function ProductsScreen() {
 
   const loadProducts = async () => {
     const data = await getProducts();
+    const sups = await getSuppliers();
+    setSuppliers(sups);
     // Sanitize stale or broken URLs from previous sessions
     const sanitizedData = data.map(p => {
       // Only wipe if it's a legacy file URI that won't persist
@@ -250,6 +255,7 @@ export default function ProductsScreen() {
         unit: unit || 'pc',
         barcode: barcode.trim(),
         photoUri,
+        supplierId,
         createdAt: new Date().toISOString(),
       };
 
@@ -268,6 +274,7 @@ export default function ProductsScreen() {
     setPrice('');
     setCostPrice('');
     setCategory('Others');
+    setSupplierId(undefined);
     setUnit('pc');
     setThreshold('5');
     setBarcode('');
@@ -441,6 +448,14 @@ export default function ProductsScreen() {
         <View style={styles.productHeader}>
           <Text style={styles.productCategory}>{item.category || 'General'}</Text>
           <Text style={styles.productName} numberOfLines={1}>{item.name}</Text>
+          {item.supplierId && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+              <Building size={10} color={Theme.colors.outline} />
+              <Text style={{ fontFamily: Theme.typography.bodyMedium, fontSize: 10, color: Theme.colors.outline }} numberOfLines={1}>
+                {suppliers.find(s => s.id === item.supplierId)?.name || 'Unknown Supplier'}
+              </Text>
+            </View>
+          )}
         </View>
         <View style={styles.productFooter}>
           <Text style={styles.productPrice}>₱{item.price.toFixed(0)}</Text>
@@ -465,12 +480,20 @@ export default function ProductsScreen() {
           <Text style={styles.boutiqueTitle}>Inventory</Text>
           <Text style={styles.boutiqueSubtitle}>Digital Stockroom</Text>
         </View>
-        <TouchableOpacity 
-          style={styles.settingsHeaderBtn} 
-          onPress={() => setIsSettingsOpen(true)}
-        >
-          <Settings size={22} color={Theme.colors.primary} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <TouchableOpacity
+            style={styles.settingsHeaderBtn}
+            onPress={() => router.push('/suppliers')}
+          >
+            <Building size={22} color={Theme.colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.settingsHeaderBtn}
+            onPress={() => setIsSettingsOpen(true)}
+          >
+            <Settings size={22} color={Theme.colors.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -583,8 +606,7 @@ export default function ProductsScreen() {
 
       {/* Add Product Modal */}
       <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
-        <View style={styles.alertOverlay}>
-          <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
+        <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
           <View style={styles.modalIndicator} />
           <View style={styles.modalHeader}>
@@ -847,6 +869,25 @@ export default function ProductsScreen() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+            <Text style={styles.inputLabel}>SUPPLIER (OPTIONAL)</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+              <TouchableOpacity
+                style={[styles.catChip, !supplierId && styles.catChipActive]}
+                onPress={() => setSupplierId(undefined)}
+              >
+                <Text style={[styles.catChipText, !supplierId && styles.catChipTextActive]}>None</Text>
+              </TouchableOpacity>
+              {suppliers.map(s => (
+                <TouchableOpacity
+                  key={s.id}
+                  style={[styles.catChip, supplierId === s.id && styles.catChipActive]}
+                  onPress={() => setSupplierId(s.id)}
+                >
+                  <Text style={[styles.catChipText, supplierId === s.id && styles.catChipTextActive]}>{s.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
 
             <View style={styles.inputRow}>
               <View style={{ flex: 1, marginRight: 12 }}>
@@ -1089,6 +1130,24 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Theme.colors.onSurface,
   },
+  supplierBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+    backgroundColor: Theme.colors.primaryContainer,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 100,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: Theme.colors.primary + '30',
+  },
+  supplierBtnText: {
+    fontFamily: Theme.typography.bodyBold,
+    fontSize: 13,
+    color: Theme.colors.primary,
+  },
   productCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1280,15 +1339,16 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: Theme.colors.surface, // Solid focus
+    backgroundColor: Theme.colors.surface,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 24,
-    height: height * 0.85,
+    paddingBottom: 48,
+    height: height * 0.90,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -20 },
     shadowOpacity: 0.1,

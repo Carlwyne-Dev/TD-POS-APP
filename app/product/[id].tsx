@@ -13,8 +13,7 @@ import {
   Dimensions,
   Alert,
   ActionSheetIOS,
-  LayoutAnimation
-} from 'react-native';
+  LayoutAnimation, KeyboardAvoidingView } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -37,12 +36,13 @@ import {
   QrCode,
   CheckCircle2,
   Info,
-  Tag
+  Tag,
+  Building
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { getProducts, updateProduct, deleteProduct, getRestockLogs, addRestockLog, CATEGORIES } from '../../lib/storage';
+import { getProducts, updateProduct, deleteProduct, getRestockLogs, addRestockLog, CATEGORIES, getSuppliers } from '../../lib/storage';
 import { useSettings } from '../../context/SettingsContext';
-import { Product, RestockLog, BusinessSettings } from '../../lib/types';
+import { Product, RestockLog, BusinessSettings, Supplier } from '../../lib/types';
 import { Theme } from '../../constants/Theme';
 
 const { width, height } = Dimensions.get('window');
@@ -81,6 +81,9 @@ export default function ProductDetailScreen() {
 
   // Restock States
   const [isPackRestock, setIsPackRestock] = useState(false);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [editSupplierId, setEditSupplierId] = useState<string | undefined>(undefined);
+  const [restockSupplierId, setRestockSupplierId] = useState<string | undefined>(undefined);
   const [qtyToAdd, setQtyToAdd] = useState('');
   const [restockCost, setRestockCost] = useState('');
   const [restockCostPerPack, setRestockCostPerPack] = useState('');
@@ -149,6 +152,7 @@ export default function ProductDetailScreen() {
         setPrice(p.price?.toString() || '0');
         setCostPrice(p.costPrice?.toString() || '0');
         setCategory(p.category || 'Others');
+        setEditSupplierId(p.supplierId);
         setUnit(p.unit || 'pc');
         setLowStockThreshold(p.lowStockThreshold?.toString() || '5');
         setPhotoUri(p.photoUri);
@@ -167,6 +171,7 @@ export default function ProductDetailScreen() {
         setRestockPiecesPerPack(multiplier.toString());
       }
       await loadRestockLogs();
+      const sups = await getSuppliers(); setSuppliers(sups);
     } catch (e) {
       console.error(e);
     } finally {
@@ -262,6 +267,7 @@ export default function ProductDetailScreen() {
         lowStockThreshold: parseInt(lowStockThreshold),
         barcode: barcode.trim(),
         photoUri,
+        supplierId: editSupplierId,
       };
 
       await updateProduct(updatedProduct);
@@ -542,6 +548,18 @@ export default function ProductDetailScreen() {
               <Text style={styles.productPrice}>₱{product.price.toLocaleString()}</Text>
               <Text style={styles.productUnit}>per {product.unit || 'pc'}</Text>
             </View>
+            {product.supplierId && suppliers.length > 0 && (() => {
+              const sup = suppliers.find(s => s.id === product.supplierId);
+              if (!sup) return null;
+              return (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 }}>
+                  <Building size={13} color={Theme.colors.primary} />
+                  <Text style={{ fontFamily: Theme.typography.bodyMedium, fontSize: 13, color: Theme.colors.primary }}>
+                    {sup.name}
+                  </Text>
+                </View>
+              );
+            })()}
           </View>
         </View>
 
@@ -625,8 +643,8 @@ export default function ProductDetailScreen() {
       </ScrollView>
 
       {/* Restock Modal */}
-      <Modal visible={restockVisible} transparent animationType="fade" onRequestClose={() => setRestockVisible(false)}>
-        <View style={styles.alertOverlay}>
+      <Modal visible={restockVisible} transparent animationType="slide" onRequestClose={() => setRestockVisible(false)}>
+        <View style={styles.modalOverlay}>
           <BlurView intensity={25} tint="dark" style={StyleSheet.absoluteFill} />
           <TouchableOpacity activeOpacity={1} style={StyleSheet.absoluteFill} onPress={() => setRestockVisible(false)} />
           <View style={styles.modalCard}>
@@ -831,8 +849,8 @@ export default function ProductDetailScreen() {
       </Modal>
 
       {/* Edit Product Modal */}
-      <Modal visible={editVisible} transparent animationType="fade" onRequestClose={() => setEditVisible(false)}>
-        <View style={styles.alertOverlay}>
+      <Modal visible={editVisible} transparent animationType="slide" onRequestClose={() => setEditVisible(false)}>
+        <View style={styles.modalOverlay}>
           <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
           <TouchableOpacity activeOpacity={1} style={StyleSheet.absoluteFill} onPress={() => setEditVisible(false)} />
           <View style={styles.modalCard}>
@@ -997,6 +1015,24 @@ export default function ProductDetailScreen() {
                 )}
               </View>
 
+              <Text style={styles.inputLabel}>SUPPLIER (OPTIONAL)</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+                <TouchableOpacity 
+                  style={[styles.catChip, !editSupplierId && styles.catChipActive]}
+                  onPress={() => setEditSupplierId(undefined)}
+                >
+                  <Text style={[styles.catChipText, !editSupplierId && styles.catChipTextActive]}>None</Text>
+                </TouchableOpacity>
+                {suppliers.map(s => (
+                  <TouchableOpacity 
+                    key={s.id} 
+                    style={[styles.catChip, editSupplierId === s.id && styles.catChipActive]}
+                    onPress={() => setEditSupplierId(s.id)}
+                  >
+                    <Text style={[styles.catChipText, editSupplierId === s.id && styles.catChipTextActive]}>{s.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
               <Text style={styles.inputLabel}>CATEGORY</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
                 {CATEGORIES.map(c => (
