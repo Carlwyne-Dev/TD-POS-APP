@@ -1,6 +1,0 @@
-{
-  "name": "sposify-admin",
-  "dependencies": {
-    "@vercel/kv": "^1.0.1"
-  }
-}
