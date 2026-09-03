@@ -241,15 +241,17 @@ export default function StatsScreen() {
     // --- Chart Data Calculation ---
     let newChartData: {label: string, value: number, height: number, transactions: Transaction[]}[] = [];
     if (period === 'daily') {
+      // Show the current week starting on Sunday (Sun -> Sat)
+      const weekStart = new Date(localNow.getTime() - localNow.getUTCDay() * 24 * 60 * 60 * 1000);
       const days = [];
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(localNow.getTime() - i * 24 * 60 * 60 * 1000);
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(weekStart.getTime() + i * 24 * 60 * 60 * 1000);
         days.push(d.toISOString().split('T')[0]);
       }
       const values = days.map(dayStr => {
         const dayTrans = allTransactions.filter(t => getLocalISOString(t.timestamp).startsWith(dayStr));
         const daySales = dayTrans.reduce((s, t) => s + t.total, 0);
-        return { label: new Date(dayStr).toLocaleDateString('en-US', { weekday: 'short' }), value: daySales, transactions: dayTrans };
+        return { label: new Date(dayStr).toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }), value: daySales, transactions: dayTrans };
       });
       const maxVal = Math.max(...values.map(v => v.value), 1) || 1;
       newChartData = values.map(v => ({ ...v, height: (v.value / maxVal) * 100 }));
