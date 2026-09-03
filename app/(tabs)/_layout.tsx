@@ -343,10 +343,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="expenses"
+        name="report"
         options={{
-          title: 'Expenses',
-          tabBarLabel: 'Costs',
+          title: 'Daily Report',
+          tabBarLabel: 'Report',
           tabBarIcon: ({ color, size }: any) => <FileText color={color} size={size} />,
           headerShown: false,
         }}

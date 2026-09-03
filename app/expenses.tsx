@@ -12,14 +12,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
-import { 
-  Plus, 
-  X, 
-  Trash2, 
-  FileText, 
-  AlertTriangle, 
+import {
+  Plus,
+  X,
+  Trash2,
+  FileText,
+  AlertTriangle,
   Info,
-  Settings,
+  ChevronLeft,
   DollarSign,
   TrendingDown,
   Calendar,
@@ -27,20 +27,20 @@ import {
   Banknote,
   Smartphone
 } from 'lucide-react-native';
-import { Theme } from '../../constants/Theme';
-import { useTintin } from '../../context/TintinContext';
-import { 
-  getExpenses, 
-  addExpense, 
-  deleteExpense 
-} from '../../lib/storage';
-import { Expense } from '../../lib/types';
-import { useSettings } from '../../context/SettingsContext';
+import { useRouter } from 'expo-router';
+import { Theme } from '../constants/Theme';
+import { useTintin } from '../context/TintinContext';
+import {
+  getExpenses,
+  addExpense,
+  deleteExpense
+} from '../lib/storage';
+import { Expense } from '../lib/types';
 
 const EXPENSE_CATEGORIES = ['Rent', 'Electricity', 'Water', 'Internet', 'Supplies', 'Maintenance', 'Salary', 'Marketing', 'Others'];
 
 export default function ExpensesScreen() {
-  const { setIsSettingsOpen } = useSettings();
+  const router = useRouter();
   const tintin = useTintin();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -140,16 +140,16 @@ export default function ExpensesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.boutiqueHeader}>
-        <View>
+        <TouchableOpacity
+          style={styles.backHeaderBtn}
+          onPress={() => router.back()}
+        >
+          <ChevronLeft size={24} color={Theme.colors.onSurface} />
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
           <Text style={styles.boutiqueTitle}>Costs</Text>
           <Text style={styles.boutiqueSubtitle}>Expense Ledger</Text>
         </View>
-        <TouchableOpacity 
-          style={styles.settingsHeaderBtn} 
-          onPress={() => setIsSettingsOpen(true)}
-        >
-          <Settings size={22} color={Theme.colors.primary} />
-        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -312,10 +312,10 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     backgroundColor: Theme.colors.background,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
   },
-  settingsHeaderBtn: {
+  backHeaderBtn: {
     padding: 8,
     backgroundColor: Theme.colors.surfaceContainerHigh,
     borderRadius: 16,

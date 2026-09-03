@@ -3,8 +3,9 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  ScrollView, 
+  ScrollView,
   TouchableOpacity,
+  TextInput,
   Modal,
   Image,
   Dimensions,
@@ -24,7 +25,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  ZoomIn,
   withTiming
 } from 'react-native-reanimated';
 import { 
@@ -52,24 +52,29 @@ import {
   ChevronDown,
   RefreshCw,
   ShoppingBag,
-  Banknote
+  Banknote,
+  Plus
 } from 'lucide-react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { 
-  getTransactions, 
-  getProducts, 
+import {
+  getTransactions,
+  getProducts,
   saveBusinessSettings,
   getUtangRecords,
   getExpenses,
+  addExpense,
   DEFAULT_CATEGORIES
 } from '../../lib/storage';
 import { useSettings } from '../../context/SettingsContext';
 import { calculateTodaysSales, calculateTodaysProfit, getPaymentBreakdown, calculateItemsSold, getTopSoldProducts } from '../../lib/calculations';
 import { Transaction, Product, UtangRecord, Expense } from '../../lib/types';
 import { Theme } from '../../constants/Theme';
+import RevenueLineChart from '../../components/RevenueLineChart';
 
 const { width } = Dimensions.get('window');
+
+const EXPENSE_CATEGORIES = ['Rent', 'Electricity', 'Water', 'Internet', 'Supplies', 'Maintenance', 'Salary', 'Marketing', 'Others'];
 
 const getLocalISOString = (dateString?: string) => {
   if (!dateString) return '';
@@ -85,7 +90,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function StatsScreen() {
   const router = useRouter();
-  const { businessSettings, setIsSettingsOpen } = useSettings();
+  const { setIsSettingsOpen } = useSettings();
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [period, setPeriod] = useState<'daily' | 'monthly' | 'yearly'>('daily');
@@ -112,10 +117,16 @@ export default function StatsScreen() {
   const [totalInventoryValue, setTotalInventoryValue] = useState(0);
   const [totalDebt, setTotalDebt] = useState(0);
   
-  const [todaysUtangIssued, setTodaysUtangIssued] = useState(0);
-  const [todaysUtangCollected, setTodaysUtangCollected] = useState(0);
   const [todaysExpenses, setTodaysExpenses] = useState(0);
+  const [todaysCostTotal, setTodaysCostTotal] = useState(0);
+  const [recentExpenses, setRecentExpenses] = useState<Expense[]>([]);
   const [allUtangRecords, setAllUtangRecords] = useState<UtangRecord[]>([]);
+
+  const [showAddExpense, setShowAddExpense] = useState(false);
+  const [expDesc, setExpDesc] = useState('');
+  const [expAmount, setExpAmount] = useState('');
+  const [expCategory, setExpCategory] = useState('Others');
+  const [expPayment, setExpPayment] = useState<'cash' | 'gcash'>('cash');
 
 
   const handlePeriodChange = (newPeriod: 'daily' | 'monthly' | 'yearly') => {
@@ -138,9 +149,26 @@ export default function StatsScreen() {
     setHistoryFilter(newFilter);
   };
 
-  const [showCloseout, setShowCloseout] = useState(false);
   const [showSalesBreakdown, setShowSalesBreakdown] = useState(false);
-  const [showScrollHint, setShowScrollHint] = useState(true);
+
+  const handleAddExpense = async () => {
+    const amt = parseFloat(expAmount);
+    if (!expDesc.trim() || !amt || amt <= 0) return;
+    await addExpense({
+      id: Date.now().toString(),
+      description: expDesc.trim(),
+      amount: amt,
+      category: expCategory,
+      paymentType: expPayment,
+      timestamp: new Date().toISOString(),
+    });
+    setShowAddExpense(false);
+    setExpDesc('');
+    setExpAmount('');
+    setExpCategory('Others');
+    setExpPayment('cash');
+    loadData();
+  };
 
   const cashCardStyle = useAnimatedStyle(() => {
     return {
@@ -166,22 +194,24 @@ export default function StatsScreen() {
     setAllUtangRecords(utang);
 
     const todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
-    const issuedToday = utang.filter(r => getLocalISOString(r.createdAt).startsWith(todayStr)).reduce((s, r) => s + r.amount, 0);
-    // Only count cash-paid utang — gcash repayments don't go into the drawer
-    const collectedToday = utang.filter(r => 
-      r.isPaid && 
-      getLocalISOString(r.paidAt).startsWith(todayStr) &&
-      (r.paymentType === 'cash' || r.paymentType === undefined || r.paymentType === null)
-    ).reduce((s, r) => s + r.amount, 0);
-    
+
     // Only subtract cash-paid expenses — gcash expenses don't come from the drawer
     const todayExpenses = expenses
       .filter(e => getLocalISOString(e.timestamp).startsWith(todayStr) && (e.paymentType === 'cash' || e.paymentType === undefined || e.paymentType === null))
       .reduce((s, e) => s + e.amount, 0);
     setTodaysExpenses(todayExpenses);
 
-    setTodaysUtangIssued(issuedToday);
-    setTodaysUtangCollected(collectedToday);
+    // Costs section: full outflow today (cash + gcash) and the latest entries
+    setTodaysCostTotal(
+      expenses
+        .filter(e => getLocalISOString(e.timestamp).startsWith(todayStr))
+        .reduce((s, e) => s + e.amount, 0)
+    );
+    setRecentExpenses(
+      [...expenses]
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 3)
+    );
 
     setLowStockItems(products.filter(p => p.stock <= p.lowStockThreshold).slice(0, 5));
     setTotalInventoryValue(products.reduce((sum, p) => sum + (p.price * p.stock), 0));
@@ -386,31 +416,12 @@ export default function StatsScreen() {
           </View>
 
           {showChart && (
-            <Animated.View 
-              layout={Layout.springify()} 
-              entering={FadeIn.duration(400)}
-              exiting={FadeOut.duration(300)}
-              style={styles.chartContainer}
-            >
-              {chartData.map((d, i) => {
-                const isActive = selectedChartIndex === null || selectedChartIndex === i;
-                return (
-                  <TouchableOpacity 
-                    key={`${period}-${i}`} 
-                    style={[styles.chartBarCol, { opacity: isActive ? 1 : 0.4 }]}
-                    onPress={() => setSelectedChartIndex(selectedChartIndex === i ? null : i)}
-                  >
-                    <View style={styles.chartBarTrack}>
-                      <Animated.View 
-                        entering={ZoomIn.delay(i * 50).springify()}
-                        style={[styles.chartBarFill, { height: `${d.height}%` }]} 
-                      />
-                    </View>
-                    <Text style={[styles.chartLabel, isActive && styles.chartLabelActive]} numberOfLines={1}>{d.label}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </Animated.View>
+            <RevenueLineChart
+              data={chartData}
+              selectedIndex={selectedChartIndex}
+              onSelectIndex={setSelectedChartIndex}
+              width={width - 32 - 48}
+            />
           )}
         </Animated.View>
 
@@ -495,17 +506,50 @@ export default function StatsScreen() {
           </ScrollView>
         </View>
 
-        {/* Daily Report and Cash On Hand */}
-        <View style={styles.bentoGrid}>
-          <TouchableOpacity style={[styles.bentoCard, { backgroundColor: '#fff', overflow: 'hidden', borderWidth: 1, borderColor: Theme.colors.outlineVariant }]} onPress={() => setShowCloseout(true)}>
-            <View style={{ position: 'absolute', bottom: -8, right: -8, opacity: 0.1 }}>
-              <FileText size={56} color="#0a643b" />
+        {/* Costs */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleRow}>
+              <TrendingDown size={18} color={Theme.colors.tertiary} />
+              <Text style={styles.sectionTitle}>Costs</Text>
             </View>
-            <Text style={styles.bentoLabel}>Daily Report</Text>
-            <Text style={[styles.bentoValue, { color: '#0a643b', fontSize: 16, marginTop: 4 }]}>View Summary</Text>
-          </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/expenses')}>
+              <Text style={styles.viewAllText}>View All</Text>
+            </TouchableOpacity>
+          </View>
 
+          <View style={styles.costSummaryCard}>
+            <View>
+              <Text style={styles.bentoLabel}>Today's Outflow</Text>
+              <Text style={[styles.bentoValue, { color: Theme.colors.tertiary }]}>₱{todaysCostTotal.toLocaleString()}</Text>
+            </View>
+            <TouchableOpacity style={styles.addCostBtn} onPress={() => setShowAddExpense(true)}>
+              <Plus size={18} color="#FFF" />
+              <Text style={styles.addCostBtnText}>Add Cost</Text>
+            </TouchableOpacity>
+          </View>
 
+          {recentExpenses.length > 0 && (
+            <View style={[styles.ledgerCard, { marginTop: 12 }]}>
+              {recentExpenses.map((e, index) => (
+                <View
+                  key={e.id}
+                  style={[styles.transactionItem, index === recentExpenses.length - 1 && { borderBottomWidth: 0 }]}
+                >
+                  <View style={[styles.transactionIcon, { backgroundColor: Theme.colors.tertiary + '15' }]}>
+                    <FileText size={20} color={Theme.colors.tertiary} />
+                  </View>
+                  <View style={styles.transactionInfo}>
+                    <Text style={styles.transactionTitle} numberOfLines={1}>{e.description}</Text>
+                    <Text style={styles.transactionMeta}>
+                      {e.category} • {new Date(e.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </Text>
+                  </View>
+                  <Text style={[styles.transactionAmount, { color: Theme.colors.tertiary }]}>₱{e.amount.toLocaleString()}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Cash Sales & Net Profit */}
@@ -687,135 +731,76 @@ export default function StatsScreen() {
         </View>
       </Modal>
 
-      {/* Daily Closeout Modal */}
-      <Modal visible={showCloseout} transparent animationType="fade" onShow={() => setShowScrollHint(true)} onRequestClose={() => setShowCloseout(false)}>
-        <View style={styles.alertOverlay}>
+      {/* Quick Add Cost Modal */}
+      <Modal visible={showAddExpense} transparent animationType="fade" onRequestClose={() => setShowAddExpense(false)}>
+        <View style={styles.sheetOverlay}>
           <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
-          <View style={styles.summaryCard}>
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              onScroll={(e) => {
-                const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
-                const isNearBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 30;
-                setShowScrollHint(!isNearBottom);
-              }}
-              scrollEventThrottle={16}
-            >
-            <View style={styles.summaryHeader}>
-              <Store size={40} color={Theme.colors.primary} style={{ marginBottom: 12 }} />
-              <Text style={styles.summaryTitle}>{businessSettings.ownerName || 'sPOSify'}</Text>
-              <Text style={styles.summarySubtitle}>Daily Performance Report</Text>
-              <Text style={styles.summaryDate}>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Text>
-            </View>
-            
-            <View style={styles.summaryBody}>
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryRowLabelGroup}>
-                  <Wallet size={18} color={Theme.colors.onSurfaceVariant} />
-                  <Text style={styles.summaryItemLabel}>Gross Sales</Text>
-                </View>
-                <Text style={styles.summaryItemValue}>₱{todaysSales.toLocaleString()}</Text>
-              </View>
-
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryRowLabelGroup}>
-                  <Rocket size={18} color={Theme.colors.primary} />
-                  <Text style={[styles.summaryItemLabel, { color: Theme.colors.primary }]}>Total Profit</Text>
-                </View>
-                <Text style={[styles.summaryItemValue, { color: Theme.colors.primary }]}>₱{todaysProfit.toLocaleString()}</Text>
-              </View>
-              
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryRowLabelGroup}>
-                  <ShoppingBasket size={18} color={Theme.colors.onSurfaceVariant} />
-                  <Text style={styles.summaryItemLabel}>Sales Count</Text>
-                </View>
-                <Text style={styles.summaryItemValue}>{recentTransactions.length} sales</Text>
-              </View>
-              
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryRowLabelGroup}>
-                  <ShoppingBag size={18} color={Theme.colors.onSurfaceVariant} />
-                  <Text style={styles.summaryItemLabel}>Items Sold</Text>
-                </View>
-                <Text style={styles.summaryItemValue}>{itemsSold} items</Text>
-              </View>
-              
-              <View style={styles.divider} />
-              
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryRowLabelGroup}>
-                  <Info size={18} color="#0a643b" />
-                  <Text style={styles.summaryItemLabel}>Cash Total</Text>
-                </View>
-                <Text style={styles.summaryItemValue}>₱{paymentStats.cash.toLocaleString()}</Text>
-              </View>
-
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryRowLabelGroup}>
-                  <Smartphone size={18} color="#2563eb" />
-                  <Text style={styles.summaryItemLabel}>GCash Total</Text>
-                </View>
-                <Text style={styles.summaryItemValue}>₱{paymentStats.gcash.toLocaleString()}</Text>
-              </View>
-
-              <View style={styles.divider} />
-
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryRowLabelGroup}>
-                  <AlertTriangle size={18} color={Theme.colors.tertiary} />
-                  <Text style={styles.summaryItemLabel}>Debt Issued (Utang)</Text>
-                </View>
-                <Text style={[styles.summaryItemValue, { color: Theme.colors.tertiary }]}>+₱{todaysUtangIssued.toLocaleString()}</Text>
-              </View>
-
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryRowLabelGroup}>
-                  <CheckCircle2 size={18} color="#0a643b" />
-                  <Text style={styles.summaryItemLabel}>Debt Collected</Text>
-                </View>
-                <Text style={[styles.summaryItemValue, { color: '#0a643b' }]}>-₱{todaysUtangCollected.toLocaleString()}</Text>
-              </View>
-
-              <View style={styles.divider} />
-
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryRowLabelGroup}>
-                  <TrendingDown size={18} color={Theme.colors.tertiary} />
-                  <Text style={styles.summaryItemLabel}>Daily Costs</Text>
-                </View>
-                <Text style={[styles.summaryItemValue, { color: Theme.colors.tertiary }]}>
-                  - ₱{todaysExpenses.toLocaleString()}
-                </Text>
-              </View>
-
-              <View style={[styles.summaryRow, { backgroundColor: Theme.colors.primaryContainer + '20', borderRadius: 20, paddingHorizontal: 16, marginTop: 8 }]}>
-                <Text style={[styles.summaryItemLabel, { fontFamily: Theme.typography.headlineBlack }]}>Net Performance</Text>
-                <Text style={[styles.summaryItemValue, { fontSize: 22, color: Theme.colors.primary }]}>
-                  ₱{(todaysProfit - todaysExpenses).toLocaleString()}
-                </Text>
-              </View>
-            </View>
-            <View style={{ height: 20 }} />
-          </ScrollView>
-            
-            {showScrollHint && (
-              <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)} style={styles.scrollHintContainer}>
-                <View style={styles.scrollHint}>
-                  <ChevronDown size={14} color={Theme.colors.outline} />
-                  <Text style={styles.scrollHintText}>Scroll for more</Text>
-                </View>
-              </Animated.View>
-            )}
-
-            <View style={styles.summaryFooter}>
-              <TouchableOpacity style={styles.shareBtn} onPress={() => setShowCloseout(false)}>
-                <CheckCircle2 size={20} color="#FFF" style={{ marginRight: 8 }} />
-                <Text style={styles.shareBtnText}>Close Report</Text>
+          <View style={styles.checkoutModalContent}>
+            <View style={styles.dialogHeader}>
+              <Text style={styles.dialogTitle}>Add Cost</Text>
+              <TouchableOpacity onPress={() => setShowAddExpense(false)} style={{ padding: 4, backgroundColor: Theme.colors.surfaceVariant, borderRadius: 12 }}>
+                <X size={20} color={Theme.colors.onSurfaceVariant} />
               </TouchableOpacity>
-              <Text style={styles.shareHint}>Take a screenshot to save this report</Text>
             </View>
+
+            <Text style={styles.inputLabel}>DESCRIPTION</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. Electricity Bill"
+              placeholderTextColor={Theme.colors.outlineVariant}
+              value={expDesc}
+              onChangeText={setExpDesc}
+            />
+
+            <Text style={styles.inputLabel}>AMOUNT (₱)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="0.00"
+              placeholderTextColor={Theme.colors.outlineVariant}
+              keyboardType="numeric"
+              value={expAmount}
+              onChangeText={(t) => setExpAmount(t.replace(/[^0-9.]/g, ''))}
+            />
+
+            <Text style={styles.inputLabel}>CATEGORY</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 4 }} style={{ marginBottom: 16 }}>
+              {EXPENSE_CATEGORIES.map(cat => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[styles.expCategoryChip, expCategory === cat && styles.expCategoryChipActive]}
+                  onPress={() => setExpCategory(cat)}
+                >
+                  <Text style={[styles.expCategoryChipText, expCategory === cat && styles.expCategoryChipTextActive]}>{cat}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <Text style={styles.inputLabel}>PAID VIA</Text>
+            <View style={{ flexDirection: 'row', backgroundColor: Theme.colors.surfaceVariant, borderRadius: 99, padding: 4, marginBottom: 20 }}>
+              <TouchableOpacity
+                onPress={() => setExpPayment('cash')}
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 99, backgroundColor: expPayment === 'cash' ? '#fff' : 'transparent' }}
+              >
+                <Banknote size={15} color={expPayment === 'cash' ? Theme.colors.primary : Theme.colors.onSurfaceVariant} />
+                <Text style={{ fontSize: 13, fontFamily: Theme.typography.bodyBold, color: expPayment === 'cash' ? Theme.colors.primary : Theme.colors.onSurfaceVariant }}>Cash</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setExpPayment('gcash')}
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 99, backgroundColor: expPayment === 'gcash' ? '#fff' : 'transparent' }}
+              >
+                <Smartphone size={15} color={expPayment === 'gcash' ? Theme.colors.primary : Theme.colors.onSurfaceVariant} />
+                <Text style={{ fontSize: 13, fontFamily: Theme.typography.bodyBold, color: expPayment === 'gcash' ? Theme.colors.primary : Theme.colors.onSurfaceVariant }}>GCash</Text>
+              </TouchableOpacity>
             </View>
+
+            <TouchableOpacity
+              style={[styles.primaryButton, { width: '100%', opacity: (!expDesc.trim() || !expAmount) ? 0.5 : 1 }]}
+              disabled={!expDesc.trim() || !expAmount}
+              onPress={handleAddExpense}
+            >
+              <Text style={styles.primaryButtonText}>Save Cost</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
 
@@ -931,41 +916,6 @@ const styles = StyleSheet.create({
     fontFamily: Theme.typography.bodyBold,
     color: '#FFF',
     fontSize: 13,
-  },
-  chartContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    height: 100,
-    marginTop: 30,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.1)',
-  },
-  chartBarCol: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  chartBarTrack: {
-    height: 50,
-    width: 14,
-    borderRadius: 7,
-    justifyContent: 'flex-end',
-    marginBottom: 8,
-  },
-  chartBarFill: {
-    width: '100%',
-    backgroundColor: Theme.colors.onPrimaryContainer,
-    borderRadius: 7,
-  },
-  chartLabel: {
-    fontFamily: Theme.typography.bodyMedium,
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 10,
-  },
-  chartLabelActive: {
-    color: 'rgba(255,255,255,1)',
-    fontFamily: Theme.typography.bodyBold,
   },
   chartToggleBtn: {
     padding: 8,
@@ -1211,113 +1161,70 @@ const styles = StyleSheet.create({
     color: Theme.colors.onSurface,
     letterSpacing: -0.5,
   },
-    alertOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     padding: 24,
   },
-  summaryCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 32,
-    padding: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.2,
-    shadowRadius: 30,
-    elevation: 12,
-    height: Dimensions.get('window').height * 0.85,
-  },
-  summaryHeader: {
-    alignItems: 'center',
-    marginBottom: 32,
-    borderBottomWidth: 1,
-    borderBottomColor: Theme.colors.outlineVariant,
-    paddingBottom: 24,
-  },
-  summaryTitle: {
-    fontFamily: Theme.typography.headlineBlack,
-    fontSize: 28,
-    color: Theme.colors.onSurface,
-    textAlign: 'center',
-  },
-  summarySubtitle: {
-    fontFamily: Theme.typography.bodyBold,
-    fontSize: 12,
-    color: Theme.colors.primary,
-    letterSpacing: 2,
-    marginTop: 4,
-    textTransform: 'uppercase',
-  },
-  summaryDate: {
-    fontFamily: Theme.typography.bodyMedium,
-    color: Theme.colors.outline,
-    marginTop: 8,
-    fontSize: 14,
-  },
-  summaryBody: {
-    gap: 4,
-  },
-  summaryRow: {
+  costSummaryCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 14,
-  },
-  summaryRowLabelGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  summaryItemLabel: {
-    fontFamily: Theme.typography.bodySemiBold,
-    fontSize: 15,
-    color: Theme.colors.onSurface,
-  },
-  summaryItemValue: {
-    fontFamily: Theme.typography.headlineBlack,
-    fontSize: 18,
-    color: Theme.colors.onSurface,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Theme.colors.outlineVariant,
-    marginVertical: 16,
-    opacity: 0.5,
-  },
-  summaryFooter: {
-    marginTop: 32,
-    alignItems: 'center',
-  },
-  shareBtn: {
-    backgroundColor: Theme.colors.primary,
-    height: 60,
-    width: '100%',
+    backgroundColor: Theme.colors.surfaceContainerLowest,
     borderRadius: 24,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: Theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Theme.colors.outlineVariant,
   },
-  shareBtnText: {
+  addCostBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Theme.colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+  },
+  addCostBtnText: {
     fontFamily: Theme.typography.bodyBold,
     color: '#FFF',
-    fontSize: 18,
+    fontSize: 14,
   },
-  shareHint: {
-    fontFamily: Theme.typography.bodyMedium,
-    color: Theme.colors.outline,
+  inputLabel: {
+    fontFamily: Theme.typography.bodyBold,
+    fontSize: 11,
+    color: Theme.colors.primary,
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  input: {
+    backgroundColor: Theme.colors.surfaceContainerLow,
+    borderRadius: 16,
+    padding: 16,
+    fontFamily: Theme.typography.bodySemiBold,
+    fontSize: 16,
+    marginBottom: 16,
+    color: Theme.colors.onSurface,
+  },
+  expCategoryChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: Theme.colors.surfaceContainerHigh,
+    borderWidth: 1,
+    borderColor: Theme.colors.outlineVariant,
+  },
+  expCategoryChipActive: {
+    backgroundColor: Theme.colors.primary,
+    borderColor: Theme.colors.primary,
+  },
+  expCategoryChipText: {
+    fontFamily: Theme.typography.bodyBold,
     fontSize: 12,
-    marginTop: 16,
+    color: Theme.colors.onSurfaceVariant,
+  },
+  expCategoryChipTextActive: {
+    color: '#FFF',
   },
   actionIcon: {
     width: 44,
@@ -1431,38 +1338,6 @@ const styles = StyleSheet.create({
   catFilterChipTextActive: {
     color: Theme.colors.onPrimary,
     fontFamily: Theme.typography.bodyBold,
-  },
-  scrollHintContainer: {
-    position: 'absolute',
-    bottom: 120,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 10,
-    pointerEvents: 'none',
-  },
-  scrollHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Theme.colors.outlineVariant,
-    gap: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  scrollHintText: {
-    fontFamily: Theme.typography.bodyBold,
-    fontSize: 10,
-    color: Theme.colors.outline,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   sheetOverlay: {
     flex: 1,

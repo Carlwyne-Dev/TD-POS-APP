@@ -239,6 +239,7 @@ function RootLayoutNav() {
         }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="sales-history" options={{ headerShown: false }} />
+          <Stack.Screen name="expenses" options={{ headerShown: false }} />
           <Stack.Screen name="product/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="transaction/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="history" options={{ headerShown: false }} />
